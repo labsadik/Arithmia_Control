@@ -93,7 +93,10 @@ function makeEntry(): ActivityEntry {
   const type = ACTIVITY_TYPES[Math.floor(Math.random() * ACTIVITY_TYPES.length)];
   return {
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-    ...type,
+    status: type.status,
+    label: type.label,
+    action: type.action,
+    agent: type.agent,
     time: new Date(),
   };
 }
