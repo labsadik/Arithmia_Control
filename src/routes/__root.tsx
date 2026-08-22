@@ -12,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { Toaster } from "@/components/ui/sonner";
 import { AppSidebar } from "@/components/app-sidebar";
 import { DashboardHeader } from "@/components/dashboard-header";
 
@@ -111,7 +112,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <head>
         <HeadContent />
       </head>
@@ -138,6 +139,7 @@ function RootComponent() {
             </main>
           </div>
         </div>
+        <Toaster position="top-right" richColors />
       </SidebarProvider>
     </QueryClientProvider>
   );
