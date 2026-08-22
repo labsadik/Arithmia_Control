@@ -30,9 +30,7 @@ function AnalyticsPage() {
           </div>
           <div>
             <CardTitle className="text-base font-semibold">$1,240 spent this month</CardTitle>
-            <CardDescription className="text-xs">
-              Down 8% compared to last month.
-            </CardDescription>
+            <CardDescription className="text-xs">Down 8% compared to last month.</CardDescription>
           </div>
         </CardHeader>
         <CardContent>

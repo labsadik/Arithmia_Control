@@ -18,13 +18,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { KpiCard } from "@/components/kpi-card";
 import { StatusBadge } from "@/components/status-badge";
 import { cn } from "@/lib/utils";
@@ -35,7 +29,10 @@ export const Route = createFileRoute("/")({
       { title: "OmniAgent Control — Dashboard" },
       { name: "description", content: "Monitor active agents, costs, and approvals in real time." },
       { property: "og:title", content: "OmniAgent Control — Dashboard" },
-      { property: "og:description", content: "Monitor active agents, costs, and approvals in real time." },
+      {
+        property: "og:description",
+        content: "Monitor active agents, costs, and approvals in real time.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -58,14 +55,44 @@ type ActivityEntry = ActivityType & {
 };
 
 const ACTIVITY_TYPES: ActivityType[] = [
-  { status: "running", label: "Running", action: "Processing invoice batch", agent: "InvoiceBot-02" },
-  { status: "completed", label: "Completed", action: "Customer onboarding workflow", agent: "OnboardAgent-1" },
-  { status: "action_required", label: "Action Required", action: "Refund approval over $500", agent: "PolicyAgent-07" },
+  {
+    status: "running",
+    label: "Running",
+    action: "Processing invoice batch",
+    agent: "InvoiceBot-02",
+  },
+  {
+    status: "completed",
+    label: "Completed",
+    action: "Customer onboarding workflow",
+    agent: "OnboardAgent-1",
+  },
+  {
+    status: "action_required",
+    label: "Action Required",
+    action: "Refund approval over $500",
+    agent: "PolicyAgent-07",
+  },
   { status: "failed", label: "Failed", action: "CRM sync timeout", agent: "SyncAgent-04" },
-  { status: "running", label: "Running", action: "Data enrichment pipeline", agent: "EnrichBot-09" },
-  { status: "completed", label: "Completed", action: "Weekly analytics rollup", agent: "Analytics-01" },
+  {
+    status: "running",
+    label: "Running",
+    action: "Data enrichment pipeline",
+    agent: "EnrichBot-09",
+  },
+  {
+    status: "completed",
+    label: "Completed",
+    action: "Weekly analytics rollup",
+    agent: "Analytics-01",
+  },
   { status: "running", label: "Running", action: "Email triage queue", agent: "MailBot-03" },
-  { status: "action_required", label: "Action Required", action: "High-value contract review", agent: "LegalAgent-05" },
+  {
+    status: "action_required",
+    label: "Action Required",
+    action: "High-value contract review",
+    agent: "LegalAgent-05",
+  },
 ];
 
 const STATUS_ICON: Record<ActivityStatus, LucideIcon> = {
@@ -205,7 +232,12 @@ function Dashboard() {
                         />
                       </div>
                       <p className="mt-0.5 text-xs text-muted-foreground">
-                        {entry.agent} • {entry.time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+                        {entry.agent} •{" "}
+                        {entry.time.toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          second: "2-digit",
+                        })}
                       </p>
                     </div>
                   </li>
@@ -223,7 +255,10 @@ function Dashboard() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Button className="w-full gap-2 bg-primary text-primary-foreground hover:bg-primary/90" size="lg">
+            <Button
+              className="w-full gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
+              size="lg"
+            >
               <Rocket className="h-4 w-4" />
               Deploy New AI Agent
             </Button>

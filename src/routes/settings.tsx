@@ -37,7 +37,8 @@ function SettingsPage() {
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground">
-            A full settings form with tabs for profile, integrations, and billing will be added here.
+            A full settings form with tabs for profile, integrations, and billing will be added
+            here.
           </p>
         </CardContent>
       </Card>

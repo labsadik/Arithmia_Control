@@ -1,15 +1,7 @@
 "use client";
 
 import { Link, useRouterState } from "@tanstack/react-router";
-import {
-  Bot,
-  LayoutDashboard,
-  PanelLeft,
-  Settings,
-  UserCheck,
-  BarChart3,
-  Zap,
-} from "lucide-react";
+import { Bot, LayoutDashboard, PanelLeft, Settings, UserCheck, BarChart3, Zap } from "lucide-react";
 
 import {
   Sidebar,

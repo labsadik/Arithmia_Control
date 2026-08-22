@@ -39,7 +39,8 @@ function ApprovalsPage() {
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground">
-            An approvals queue with approve/reject actions, notes, and audit history will be added here.
+            An approvals queue with approve/reject actions, notes, and audit history will be added
+            here.
           </p>
         </CardContent>
       </Card>

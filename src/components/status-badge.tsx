@@ -7,14 +7,10 @@ const statusBadgeVariants = cva(
   {
     variants: {
       variant: {
-        running:
-          "border-info/20 bg-info/10 text-info",
-        completed:
-          "border-success/20 bg-success/10 text-success",
-        action_required:
-          "border-warning/20 bg-warning/10 text-warning",
-        failed:
-          "border-danger/20 bg-danger/10 text-danger",
+        running: "border-info/20 bg-info/10 text-info",
+        completed: "border-success/20 bg-success/10 text-success",
+        action_required: "border-warning/20 bg-warning/10 text-warning",
+        failed: "border-danger/20 bg-danger/10 text-danger",
       },
     },
     defaultVariants: {
@@ -24,18 +20,12 @@ const statusBadgeVariants = cva(
 );
 
 export interface StatusBadgeProps
-  extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof statusBadgeVariants> {
+  extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof statusBadgeVariants> {
   label: string;
   pulse?: boolean;
 }
 
-export function StatusBadge({
-  className,
-  variant,
-  label,
-  pulse = false,
-}: StatusBadgeProps) {
+export function StatusBadge({ className, variant, label, pulse = false }: StatusBadgeProps) {
   return (
     <div className={cn(statusBadgeVariants({ variant }), className)}>
       <span
