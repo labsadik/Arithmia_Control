@@ -1,5 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import {
   Activity,
   AlertCircle,
@@ -21,6 +21,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { KpiCard } from "@/components/kpi-card";
 import { StatusBadge } from "@/components/status-badge";
+import { useRealtimeTable } from "@/hooks/use-realtime-table";
+import { supabase } from "@/integrations/supabase/client";
+import { formatRelativeTime } from "@/lib/time";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
@@ -42,58 +45,18 @@ export const Route = createFileRoute("/")({
 
 type ActivityStatus = "running" | "completed" | "action_required" | "failed";
 
-type ActivityType = {
-  status: ActivityStatus;
-  label: string;
-  action: string;
-  agent: string;
-};
+function toActivityStatus(value: string): ActivityStatus {
+  return value === "completed" || value === "action_required" || value === "failed"
+    ? value
+    : "running";
+}
 
-type ActivityEntry = ActivityType & {
-  id: string;
-  time: Date;
+const STATUS_LABEL: Record<ActivityStatus, string> = {
+  running: "Running",
+  completed: "Completed",
+  action_required: "Action Required",
+  failed: "Failed",
 };
-
-const ACTIVITY_TYPES: ActivityType[] = [
-  {
-    status: "running",
-    label: "Running",
-    action: "Processing invoice batch",
-    agent: "InvoiceBot-02",
-  },
-  {
-    status: "completed",
-    label: "Completed",
-    action: "Customer onboarding workflow",
-    agent: "OnboardAgent-1",
-  },
-  {
-    status: "action_required",
-    label: "Action Required",
-    action: "Refund approval over $500",
-    agent: "PolicyAgent-07",
-  },
-  { status: "failed", label: "Failed", action: "CRM sync timeout", agent: "SyncAgent-04" },
-  {
-    status: "running",
-    label: "Running",
-    action: "Data enrichment pipeline",
-    agent: "EnrichBot-09",
-  },
-  {
-    status: "completed",
-    label: "Completed",
-    action: "Weekly analytics rollup",
-    agent: "Analytics-01",
-  },
-  { status: "running", label: "Running", action: "Email triage queue", agent: "MailBot-03" },
-  {
-    status: "action_required",
-    label: "Action Required",
-    action: "High-value contract review",
-    agent: "LegalAgent-05",
-  },
-];
 
 const STATUS_ICON: Record<ActivityStatus, LucideIcon> = {
   running: Loader2,
@@ -116,29 +79,48 @@ const STATUS_FG: Record<ActivityStatus, string> = {
   failed: "text-danger",
 };
 
-function makeEntry(): ActivityEntry {
-  const type = ACTIVITY_TYPES[Math.floor(Math.random() * ACTIVITY_TYPES.length)]!;
-  return {
-    id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-    status: type.status,
-    label: type.label,
-    action: type.action,
-    agent: type.agent,
-    time: new Date(),
-  };
-}
-
 function Dashboard() {
-  const [activities, setActivities] = useState<ActivityEntry[]>(() =>
-    Array.from({ length: 6 }).map(() => makeEntry()),
-  );
+  const { data: agents } = useQuery({
+    queryKey: ["agents"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("agents").select("*");
+      if (error) throw error;
+      return data;
+    },
+  });
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setActivities((prev) => [makeEntry(), ...prev].slice(0, 12));
-    }, 5500);
-    return () => clearInterval(interval);
-  }, []);
+  const { data: approvals } = useQuery({
+    queryKey: ["approvals"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("approvals").select("id, status");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: events, isLoading: eventsLoading } = useQuery({
+    queryKey: ["activity_events"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("activity_events")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(12);
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  useRealtimeTable("agents", ["agents"]);
+  useRealtimeTable("approvals", ["approvals"]);
+  useRealtimeTable("activity_events", ["activity_events"]);
+
+  const runningAgents = agents?.filter((a) => a.status === "running") ?? [];
+  const totalCost = agents?.reduce((sum, a) => sum + Number(a.cost_usd), 0);
+  const avgSuccess = runningAgents.length
+    ? runningAgents.reduce((sum, a) => sum + Number(a.success_rate), 0) / runningAgents.length
+    : undefined;
+  const pendingCount = approvals?.filter((a) => a.status === "pending").length;
 
   return (
     <div className="space-y-6">
@@ -149,39 +131,40 @@ function Dashboard() {
             Real-time overview of your AI workforce and operational health.
           </p>
         </div>
-        <p className="text-xs text-muted-foreground">
-          Last updated {new Date().toLocaleTimeString()}
-        </p>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <span className="status-dot bg-success animate-pulse" />
+          Connected to live database
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <KpiCard
           title="Total Active Agents"
-          value="14"
+          value={agents ? String(runningAgents.length) : "—"}
           icon={Bot}
           trend="+2 this week"
           trendDirection="up"
         />
         <KpiCard
           title="Monthly Token Cost"
-          value="$1,240"
+          value={totalCost !== undefined ? `$${Math.round(totalCost).toLocaleString()}` : "—"}
           icon={CreditCard}
           trend="-8% vs last month"
           trendDirection="up"
         />
         <KpiCard
           title="Success Rate"
-          value="99.2%"
+          value={avgSuccess !== undefined ? `${avgSuccess.toFixed(1)}%` : "—"}
           icon={Activity}
           trend="0.1% above SLA"
           trendDirection="up"
         />
         <KpiCard
           title="Pending Approvals"
-          value="3"
+          value={pendingCount !== undefined ? String(pendingCount) : "—"}
           icon={Users}
-          trend="Needs attention"
-          trendDirection="down"
+          trend={pendingCount ? "Needs attention" : "Queue clear"}
+          trendDirection={pendingCount ? "down" : "up"}
         />
       </div>
 
@@ -200,9 +183,20 @@ function Dashboard() {
             </div>
           </CardHeader>
           <CardContent>
+            {eventsLoading && (
+              <p className="py-8 text-center text-sm text-muted-foreground">
+                Connecting to activity stream…
+              </p>
+            )}
+            {!eventsLoading && events?.length === 0 && (
+              <p className="py-8 text-center text-sm text-muted-foreground">
+                No activity recorded yet.
+              </p>
+            )}
             <ul className="space-y-3">
-              {activities.map((entry) => {
-                const StatusIcon = STATUS_ICON[entry.status];
+              {events?.map((entry) => {
+                const status = toActivityStatus(entry.status);
+                const StatusIcon = STATUS_ICON[status];
                 return (
                   <li
                     key={entry.id}
@@ -211,33 +205,28 @@ function Dashboard() {
                     <div
                       className={cn(
                         "flex h-9 w-9 shrink-0 items-center justify-center rounded-full",
-                        STATUS_BG[entry.status],
+                        STATUS_BG[status],
                       )}
                     >
                       <StatusIcon
                         className={cn(
                           "h-4 w-4",
-                          STATUS_FG[entry.status],
-                          entry.status === "running" && "animate-spin",
+                          STATUS_FG[status],
+                          status === "running" && "animate-spin",
                         )}
                       />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <p className="text-sm font-medium text-foreground">{entry.action}</p>
+                        <p className="text-sm font-medium text-foreground">{entry.message}</p>
                         <StatusBadge
-                          variant={entry.status}
-                          label={entry.label}
-                          pulse={entry.status === "running"}
+                          variant={status}
+                          label={STATUS_LABEL[status]}
+                          pulse={status === "running"}
                         />
                       </div>
                       <p className="mt-0.5 text-xs text-muted-foreground">
-                        {entry.agent} •{" "}
-                        {entry.time.toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                          second: "2-digit",
-                        })}
+                        {entry.agent_name} • {formatRelativeTime(entry.created_at)}
                       </p>
                     </div>
                   </li>
@@ -256,11 +245,14 @@ function Dashboard() {
           </CardHeader>
           <CardContent className="space-y-3">
             <Button
+              asChild
               className="w-full gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
               size="lg"
             >
-              <Rocket className="h-4 w-4" />
-              Deploy New AI Agent
+              <Link to="/agents">
+                <Rocket className="h-4 w-4" />
+                Deploy New AI Agent
+              </Link>
             </Button>
             <div className="grid grid-cols-2 gap-3">
               <Button
