@@ -90,7 +90,7 @@ const STATUS_FG: Record<ActivityStatus, string> = {
 };
 
 function makeEntry(): ActivityEntry {
-  const type = ACTIVITY_TYPES[Math.floor(Math.random() * ACTIVITY_TYPES.length)];
+  const type = ACTIVITY_TYPES[Math.floor(Math.random() * ACTIVITY_TYPES.length)]!;
   return {
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
     status: type.status,
