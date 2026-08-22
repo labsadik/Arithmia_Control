@@ -116,7 +116,9 @@ function Dashboard() {
   useRealtimeTable("activity_events", ["activity_events"]);
 
   const runningAgents = agents?.filter((a) => a.status === "running") ?? [];
-  const totalCost = agents?.reduce((sum, a) => sum + Number(a.cost_usd), 0);
+  const totalCost = agents
+    ? runningAgents.reduce((sum, a) => sum + Number(a.cost_usd), 0)
+    : undefined;
   const avgSuccess = runningAgents.length
     ? runningAgents.reduce((sum, a) => sum + Number(a.success_rate), 0) / runningAgents.length
     : undefined;
