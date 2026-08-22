@@ -110,10 +110,9 @@ function ApprovalsPage() {
       if (error) throw error;
     },
     onSuccess: (_data, vars) => {
-      toast.success(
-        vars.decision === "approved" ? "Request approved" : "Request rejected",
-        { description: "The agent has been notified of your decision." },
-      );
+      toast.success(vars.decision === "approved" ? "Request approved" : "Request rejected", {
+        description: "The agent has been notified of your decision.",
+      });
       queryClient.invalidateQueries({ queryKey: ["approvals"] });
       setSelected(null);
     },
@@ -202,14 +201,20 @@ function ApprovalsPage() {
             <TableBody>
               {isLoading && (
                 <TableRow className="border-border hover:bg-transparent">
-                  <TableCell colSpan={6} className="py-10 text-center text-sm text-muted-foreground">
+                  <TableCell
+                    colSpan={6}
+                    className="py-10 text-center text-sm text-muted-foreground"
+                  >
                     Loading approval queue…
                   </TableCell>
                 </TableRow>
               )}
               {!isLoading && sorted.length === 0 && (
                 <TableRow className="border-border hover:bg-transparent">
-                  <TableCell colSpan={6} className="py-10 text-center text-sm text-muted-foreground">
+                  <TableCell
+                    colSpan={6}
+                    className="py-10 text-center text-sm text-muted-foreground"
+                  >
                     No approval requests yet.
                   </TableCell>
                 </TableRow>
@@ -235,9 +240,7 @@ function ApprovalsPage() {
                     </div>
                   </TableCell>
                   <TableCell className="hidden max-w-xs lg:table-cell">
-                    <p className="truncate text-xs text-muted-foreground">
-                      {approval.description}
-                    </p>
+                    <p className="truncate text-xs text-muted-foreground">{approval.description}</p>
                   </TableCell>
                   <TableCell>
                     <RiskBadge level={approval.risk_level} />

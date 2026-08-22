@@ -46,7 +46,10 @@ const STATUS_LABELS: Record<string, string> = {
 const FILTERS = ["all", "running", "idle", "paused"] as const;
 type Filter = (typeof FILTERS)[number];
 
-const compactNumber = new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 });
+const compactNumber = new Intl.NumberFormat("en", {
+  notation: "compact",
+  maximumFractionDigits: 1,
+});
 
 function AgentsPage() {
   const [filter, setFilter] = useState<Filter>("all");
@@ -85,7 +88,8 @@ function AgentsPage() {
           className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
           onClick={() =>
             toast.info("Deployment pipeline not connected", {
-              description: "This prototype uses demo data — agent provisioning is not wired up yet.",
+              description:
+                "This prototype uses demo data — agent provisioning is not wired up yet.",
             })
           }
         >
@@ -161,14 +165,20 @@ function AgentsPage() {
             <TableBody>
               {isLoading && (
                 <TableRow className="border-border hover:bg-transparent">
-                  <TableCell colSpan={8} className="py-10 text-center text-sm text-muted-foreground">
+                  <TableCell
+                    colSpan={8}
+                    className="py-10 text-center text-sm text-muted-foreground"
+                  >
                     Loading agents…
                   </TableCell>
                 </TableRow>
               )}
               {!isLoading && visible.length === 0 && (
                 <TableRow className="border-border hover:bg-transparent">
-                  <TableCell colSpan={8} className="py-10 text-center text-sm text-muted-foreground">
+                  <TableCell
+                    colSpan={8}
+                    className="py-10 text-center text-sm text-muted-foreground"
+                  >
                     No agents match this filter.
                   </TableCell>
                 </TableRow>
