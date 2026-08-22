@@ -2,18 +2,19 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
   Activity,
+  AlertCircle,
   Bot,
+  CheckCircle2,
   CreditCard,
   FileText,
+  HelpCircle,
   Loader2,
   Plus,
   Rocket,
   UserPlus,
   Users,
-  AlertCircle,
-  CheckCircle2,
   XCircle,
-  HelpCircle,
+  type LucideIcon,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -42,39 +43,53 @@ export const Route = createFileRoute("/")({
   component: Dashboard,
 });
 
-const ACTIVITY_TYPES = [
-  { status: "running" as const, label: "Running", action: "Processing invoice batch", agent: "InvoiceBot-02" },
-  { status: "completed" as const, label: "Completed", action: "Customer onboarding workflow", agent: "OnboardAgent-1" },
-  { status: "action_required" as const, label: "Action Required", action: "Refund approval over $500", agent: "PolicyAgent-07" },
-  { status: "failed" as const, label: "Failed", action: "CRM sync timeout", agent: "SyncAgent-04" },
-  { status: "running" as const, label: "Running", action: "Data enrichment pipeline", agent: "EnrichBot-09" },
-  { status: "completed" as const, label: "Completed", action: "Weekly analytics rollup", agent: "Analytics-01" },
-  { status: "running" as const, label: "Running", action: "Email triage queue", agent: "MailBot-03" },
-  { status: "action_required" as const, label: "Action Required", action: "High-value contract review", agent: "LegalAgent-05" },
-] as const;
+type ActivityStatus = "running" | "completed" | "action_required" | "failed";
 
-const STATUS_ICON = {
+type ActivityType = {
+  status: ActivityStatus;
+  label: string;
+  action: string;
+  agent: string;
+};
+
+type ActivityEntry = ActivityType & {
+  id: string;
+  time: Date;
+};
+
+const ACTIVITY_TYPES: ActivityType[] = [
+  { status: "running", label: "Running", action: "Processing invoice batch", agent: "InvoiceBot-02" },
+  { status: "completed", label: "Completed", action: "Customer onboarding workflow", agent: "OnboardAgent-1" },
+  { status: "action_required", label: "Action Required", action: "Refund approval over $500", agent: "PolicyAgent-07" },
+  { status: "failed", label: "Failed", action: "CRM sync timeout", agent: "SyncAgent-04" },
+  { status: "running", label: "Running", action: "Data enrichment pipeline", agent: "EnrichBot-09" },
+  { status: "completed", label: "Completed", action: "Weekly analytics rollup", agent: "Analytics-01" },
+  { status: "running", label: "Running", action: "Email triage queue", agent: "MailBot-03" },
+  { status: "action_required", label: "Action Required", action: "High-value contract review", agent: "LegalAgent-05" },
+];
+
+const STATUS_ICON: Record<ActivityStatus, LucideIcon> = {
   running: Loader2,
   completed: CheckCircle2,
   action_required: AlertCircle,
   failed: XCircle,
 };
 
-const STATUS_BG = {
+const STATUS_BG: Record<ActivityStatus, string> = {
   running: "bg-info/10",
   completed: "bg-success/10",
   action_required: "bg-warning/10",
   failed: "bg-danger/10",
 };
 
-const STATUS_FG = {
+const STATUS_FG: Record<ActivityStatus, string> = {
   running: "text-info",
   completed: "text-success",
   action_required: "text-warning",
   failed: "text-danger",
 };
 
-function makeEntry() {
+function makeEntry(): ActivityEntry {
   const type = ACTIVITY_TYPES[Math.floor(Math.random() * ACTIVITY_TYPES.length)];
   return {
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
@@ -84,7 +99,7 @@ function makeEntry() {
 }
 
 function Dashboard() {
-  const [activities, setActivities] = useState(() =>
+  const [activities, setActivities] = useState<ActivityEntry[]>(() =>
     Array.from({ length: 6 }).map(() => makeEntry()),
   );
 
@@ -180,7 +195,11 @@ function Dashboard() {
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
                         <p className="text-sm font-medium text-foreground">{entry.action}</p>
-                        <StatusBadge variant={entry.status} label={entry.label} pulse={entry.status === "running"} />
+                        <StatusBadge
+                          variant={entry.status}
+                          label={entry.label}
+                          pulse={entry.status === "running"}
+                        />
                       </div>
                       <p className="mt-0.5 text-xs text-muted-foreground">
                         {entry.agent} • {entry.time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
@@ -206,19 +225,31 @@ function Dashboard() {
               Deploy New AI Agent
             </Button>
             <div className="grid grid-cols-2 gap-3">
-              <Button variant="outline" className="gap-2 border-border bg-background/60 hover:bg-accent hover:text-accent-foreground">
+              <Button
+                variant="outline"
+                className="gap-2 border-border bg-background/60 hover:bg-accent hover:text-accent-foreground"
+              >
                 <Plus className="h-4 w-4" />
                 New Workflow
               </Button>
-              <Button variant="outline" className="gap-2 border-border bg-background/60 hover:bg-accent hover:text-accent-foreground">
+              <Button
+                variant="outline"
+                className="gap-2 border-border bg-background/60 hover:bg-accent hover:text-accent-foreground"
+              >
                 <UserPlus className="h-4 w-4" />
                 Invite Operator
               </Button>
-              <Button variant="outline" className="gap-2 border-border bg-background/60 hover:bg-accent hover:text-accent-foreground">
+              <Button
+                variant="outline"
+                className="gap-2 border-border bg-background/60 hover:bg-accent hover:text-accent-foreground"
+              >
                 <FileText className="h-4 w-4" />
                 View Logs
               </Button>
-              <Button variant="outline" className="gap-2 border-border bg-background/60 hover:bg-accent hover:text-accent-foreground">
+              <Button
+                variant="outline"
+                className="gap-2 border-border bg-background/60 hover:bg-accent hover:text-accent-foreground"
+              >
                 <HelpCircle className="h-4 w-4" />
                 Help
               </Button>
