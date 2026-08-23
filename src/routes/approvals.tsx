@@ -319,7 +319,7 @@ function ApprovalsPage() {
                   <div>
                     <dt className="text-muted-foreground">Action type</dt>
                     <dd className="mt-0.5 font-medium text-foreground">
-                      {selected.action_type.replaceAll("_", " ")}
+                      {(selected.action_type ?? "unknown").replaceAll("_", " ")}
                     </dd>
                   </div>
                   <div>
