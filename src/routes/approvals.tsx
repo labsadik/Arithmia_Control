@@ -234,7 +234,7 @@ function ApprovalsPage() {
                           variant="outline"
                           className="border-border text-[10px] uppercase tracking-wide text-muted-foreground"
                         >
-                          {approval.action_type.replaceAll("_", " ")}
+                          {(approval.action_type ?? "unknown").replaceAll("_", " ")}
                         </Badge>
                       </div>
                     </div>
