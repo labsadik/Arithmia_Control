@@ -4,16 +4,6 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/*
- * Design system definition.
- *
- * The @theme inline block maps CSS custom properties to Tailwind utility
- * classes (e.g. --color-primary -> bg-primary, text-primary).
- *
- * The :root (light, default) and .dark blocks define the actual color
- * values using oklch. All colors MUST use oklch format.
- */
-
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -24,33 +14,42 @@
   --radius-4xl: calc(var(--radius) + 16px);
 
   --font-sans:
-    "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    "Inter",
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
+
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
+
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
+
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
+
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-ring-offset-background: var(--background);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
+
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -60,45 +59,54 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  /* Status palette */
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
+
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
+
   --color-danger: var(--danger);
   --color-danger-foreground: var(--danger-foreground);
+
   --color-info: var(--info);
   --color-info-foreground: var(--info-foreground);
 }
 
+/* ============================================================
+   LIGHT THEME
+============================================================ */
+
 :root {
   --radius: 0.75rem;
 
-  /* Light-first enterprise palette: crisp white surfaces, indigo-cyan accent */
   --background: oklch(0.985 0.004 250);
   --foreground: oklch(0.22 0.03 260);
+
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.22 0.03 260);
+
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.22 0.03 260);
+
   --primary: oklch(0.55 0.18 245);
   --primary-foreground: oklch(0.98 0.005 245);
+
   --secondary: oklch(0.955 0.01 250);
   --secondary-foreground: oklch(0.28 0.03 260);
+
   --muted: oklch(0.955 0.01 250);
   --muted-foreground: oklch(0.5 0.03 255);
+
   --accent: oklch(0.935 0.018 250);
   --accent-foreground: oklch(0.28 0.03 260);
+
   --destructive: oklch(0.55 0.22 25);
   --destructive-foreground: oklch(0.98 0.01 25);
+
   --border: oklch(0 0 0 / 0.09);
   --input: oklch(0 0 0 / 0.14);
   --ring: oklch(0.55 0.18 245 / 0.45);
-  --chart-1: oklch(0.55 0.18 245);
-  --chart-2: oklch(0.6 0.15 150);
-  --chart-3: oklch(0.7 0.14 75);
-  --chart-4: oklch(0.55 0.22 25);
-  --chart-5: oklch(0.6 0.15 300);
+
   --sidebar: oklch(0.975 0.006 250);
   --sidebar-foreground: oklch(0.22 0.03 260);
   --sidebar-primary: oklch(0.55 0.18 245);
@@ -110,74 +118,414 @@
 
   --success: oklch(0.6 0.15 150);
   --success-foreground: oklch(0.98 0.01 150);
+
   --warning: oklch(0.68 0.14 70);
   --warning-foreground: oklch(0.25 0.04 70);
+
   --danger: oklch(0.55 0.22 25);
   --danger-foreground: oklch(0.98 0.01 25);
+
   --info: oklch(0.55 0.18 245);
   --info-foreground: oklch(0.98 0.005 245);
 }
 
+/* ============================================================
+   DARK THEME
+============================================================ */
+
 .dark {
-  --background: oklch(0.14 0.02 260);
+  --background: oklch(0.12 0.025 260);
   --foreground: oklch(0.95 0.01 240);
-  --card: oklch(0.18 0.025 255);
+
+  --card: oklch(0.16 0.025 255);
   --card-foreground: oklch(0.95 0.01 240);
-  --popover: oklch(0.18 0.025 255);
+
+  --popover: oklch(0.16 0.025 255);
   --popover-foreground: oklch(0.95 0.01 240);
+
   --primary: oklch(0.62 0.18 245);
   --primary-foreground: oklch(0.12 0.02 250);
-  --secondary: oklch(0.24 0.03 255);
+
+  --secondary: oklch(0.22 0.03 255);
   --secondary-foreground: oklch(0.92 0.01 240);
-  --muted: oklch(0.24 0.03 255);
+
+  --muted: oklch(0.22 0.03 255);
   --muted-foreground: oklch(0.65 0.04 255);
-  --accent: oklch(0.28 0.04 255);
+
+  --accent: oklch(0.27 0.04 255);
   --accent-foreground: oklch(0.92 0.01 240);
+
   --destructive: oklch(0.57 0.22 25);
   --destructive-foreground: oklch(0.95 0.01 25);
+
   --border: oklch(1 0 0 / 0.08);
   --input: oklch(1 0 0 / 0.12);
   --ring: oklch(0.62 0.18 245 / 0.5);
-  --chart-1: oklch(0.62 0.18 245);
-  --chart-2: oklch(0.65 0.16 145);
-  --chart-3: oklch(0.75 0.14 80);
-  --chart-4: oklch(0.57 0.22 25);
-  --chart-5: oklch(0.7 0.15 300);
-  --sidebar: oklch(0.16 0.02 260);
+
+  --sidebar: oklch(0.14 0.025 260);
   --sidebar-foreground: oklch(0.95 0.01 240);
   --sidebar-primary: oklch(0.62 0.18 245);
   --sidebar-primary-foreground: oklch(0.12 0.02 250);
-  --sidebar-accent: oklch(0.24 0.03 255);
+  --sidebar-accent: oklch(0.22 0.03 255);
   --sidebar-accent-foreground: oklch(0.92 0.01 240);
   --sidebar-border: oklch(1 0 0 / 0.08);
   --sidebar-ring: oklch(0.62 0.18 245 / 0.5);
 
   --success: oklch(0.65 0.16 145);
   --success-foreground: oklch(0.12 0.02 150);
+
   --warning: oklch(0.75 0.14 80);
   --warning-foreground: oklch(0.18 0.03 80);
+
   --danger: oklch(0.57 0.22 25);
   --danger-foreground: oklch(0.95 0.01 25);
+
   --info: oklch(0.62 0.18 245);
   --info-foreground: oklch(0.12 0.02 250);
 }
 
+/* ============================================================
+   BASE
+============================================================ */
+
 @layer base {
   * {
     border-color: var(--color-border);
+    box-sizing: border-box;
   }
 
   html {
+    min-height: 100%;
     font-family: var(--font-sans);
+    background: var(--color-background);
   }
 
   body {
+    min-height: 100vh;
+    margin: 0;
     background-color: var(--color-background);
     color: var(--color-foreground);
+
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+
+  #root {
+    min-height: 100vh;
+  }
 }
+
+/* ============================================================
+   GLOBAL APP BACKGROUND
+============================================================ */
+
+.app-background {
+  position: relative;
+  min-height: 100vh;
+  isolation: isolate;
+  overflow-x: hidden;
+
+  background-color: var(--color-background);
+
+  background-image:
+    linear-gradient(
+      to right,
+      oklch(0.55 0.18 245 / 0.045) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      oklch(0.55 0.18 245 / 0.045) 1px,
+      transparent 1px
+    );
+
+  background-size: 32px 32px;
+}
+
+/* ============================================================
+   STARTUP LOADER
+============================================================ */
+
+.website-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 999999;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  height: 100dvh;
+
+  overflow: hidden;
+
+  background:
+    radial-gradient(
+      circle at 50% 45%,
+      rgba(70, 130, 255, 0.08),
+      transparent 38%
+    ),
+    #ffffff;
+
+  color: #111827;
+
+  isolation: isolate;
+
+  animation:
+    website-loader-enter
+    180ms
+    ease-out
+    both;
+
+  will-change: opacity;
+}
+
+/* ============================================================
+   GRID
+============================================================ */
+
+.website-loader-grid {
+  position: absolute;
+  inset: 0;
+
+  pointer-events: none;
+
+  opacity: 0.32;
+
+  background-image:
+    linear-gradient(
+      to right,
+      rgba(70, 130, 255, 0.065) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      rgba(70, 130, 255, 0.065) 1px,
+      transparent 1px
+    );
+
+  background-size: 42px 42px;
+
+  mask-image:
+    linear-gradient(
+      to bottom,
+      black 0%,
+      black 45%,
+      transparent 92%
+    );
+
+  -webkit-mask-image:
+    linear-gradient(
+      to bottom,
+      black 0%,
+      black 45%,
+      transparent 92%
+    );
+}
+
+/* ============================================================
+   CONTENT
+============================================================ */
+
+.website-loader-content {
+  position: relative;
+  z-index: 2;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  height: 100%;
+
+  padding: 24px;
+
+  will-change: transform, opacity;
+
+  transition:
+    transform 500ms cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 500ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.website-loader-content-exiting {
+  opacity: 0;
+  transform: scale(1.025);
+}
+
+/* ============================================================
+   LOGO WRAPPER
+============================================================ */
+
+.website-loader-logo-wrap {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: clamp(220px, 32vw, 420px);
+  height: clamp(180px, 25vw, 300px);
+}
+
+/* ============================================================
+   LOGO GLOW
+============================================================ */
+
+.website-loader-logo-glow {
+  position: absolute;
+
+  width: 52%;
+  height: 52%;
+
+  border-radius: 9999px;
+
+  background: rgba(70, 130, 255, 0.10);
+
+  filter: blur(50px);
+
+  pointer-events: none;
+
+  will-change: transform;
+}
+
+/* ============================================================
+   LOGO
+============================================================ */
+
+.website-loader-logo {
+  position: relative;
+  z-index: 2;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: contain;
+
+  user-select: none;
+  -webkit-user-drag: none;
+
+  will-change: transform, opacity;
+
+  animation:
+    website-logo-enter
+    700ms
+    cubic-bezier(0.22, 1, 0.36, 1)
+    both;
+}
+
+/* ============================================================
+   LOGO ANIMATION
+============================================================ */
+
+@keyframes website-logo-enter {
+  0% {
+    opacity: 0;
+    transform: scale(0.88);
+    filter: blur(6px);
+  }
+
+  60% {
+    opacity: 1;
+    transform: scale(1.025);
+    filter: blur(0);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+}
+
+/* ============================================================
+   LOADER ENTER
+============================================================ */
+
+@keyframes website-loader-enter {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* ============================================================
+   LOADER EXIT
+============================================================ */
+
+.website-loader.is-exiting {
+  pointer-events: none;
+
+  animation:
+    website-loader-exit
+    500ms
+    cubic-bezier(0.4, 0, 1, 1)
+    forwards;
+}
+
+@keyframes website-loader-exit {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+/* ============================================================
+   LOCK PAGE DURING LOADER
+============================================================ */
+
+html.website-loading,
+body.website-loading {
+  overflow: hidden !important;
+
+  width: 100%;
+  height: 100%;
+
+  overscroll-behavior: none;
+}
+
+/* ============================================================
+   ACCESSIBILITY
+============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .website-loader,
+  .website-loader-logo {
+    animation: none !important;
+  }
+
+  .website-loader-content {
+    transition: none !important;
+  }
+}
+
+/* ============================================================
+   MOBILE
+============================================================ */
+
+@media (max-width: 640px) {
+  .website-loader-logo-wrap {
+    width: min(300px, 78vw);
+    height: min(220px, 55vw);
+  }
+
+  .website-loader-grid {
+    background-size: 34px 34px;
+  }
+}
+
+/* ============================================================
+   UTILITIES
+============================================================ */
 
 @utility card-glow {
   box-shadow:
@@ -192,5 +540,9 @@
 }
 
 @utility animate-pulse-slow {
-  animation: pulse 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  animation:
+    pulse
+    2.5s
+    cubic-bezier(0.4, 0, 0.6, 1)
+    infinite;
 }

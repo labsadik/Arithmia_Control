@@ -12,7 +12,11 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AgentsRouteImport } from './routes/agents'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
+import { Route as Analytics_backupRouteImport } from './routes/analytics_backup'
+import { Route as ApiManagementRouteImport } from './routes/api-management'
 import { Route as ApprovalsRouteImport } from './routes/approvals'
+import { Route as BrainRouteImport } from './routes/brain'
+import { Route as NewWorkflowRouteImport } from './routes/new-workflow'
 import { Route as SettingsRouteImport } from './routes/settings'
 
 const IndexRoute = IndexRouteImport.update({
@@ -30,9 +34,29 @@ const AnalyticsRoute = AnalyticsRouteImport.update({
   path: '/analytics',
   getParentRoute: () => rootRouteImport,
 } as any)
+const Analytics_backupRoute = Analytics_backupRouteImport.update({
+  id: '/analytics_backup',
+  path: '/analytics_backup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiManagementRoute = ApiManagementRouteImport.update({
+  id: '/api-management',
+  path: '/api-management',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApprovalsRoute = ApprovalsRouteImport.update({
   id: '/approvals',
   path: '/approvals',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BrainRoute = BrainRouteImport.update({
+  id: '/brain',
+  path: '/brain',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NewWorkflowRoute = NewWorkflowRouteImport.update({
+  id: '/new-workflow',
+  path: '/new-workflow',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsRoute = SettingsRouteImport.update({
@@ -45,14 +69,22 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/agents': typeof AgentsRoute
   '/analytics': typeof AnalyticsRoute
+  '/analytics_backup': typeof Analytics_backupRoute
+  '/api-management': typeof ApiManagementRoute
   '/approvals': typeof ApprovalsRoute
+  '/brain': typeof BrainRoute
+  '/new-workflow': typeof NewWorkflowRoute
   '/settings': typeof SettingsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/agents': typeof AgentsRoute
   '/analytics': typeof AnalyticsRoute
+  '/analytics_backup': typeof Analytics_backupRoute
+  '/api-management': typeof ApiManagementRoute
   '/approvals': typeof ApprovalsRoute
+  '/brain': typeof BrainRoute
+  '/new-workflow': typeof NewWorkflowRoute
   '/settings': typeof SettingsRoute
 }
 export interface FileRoutesById {
@@ -60,22 +92,58 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/agents': typeof AgentsRoute
   '/analytics': typeof AnalyticsRoute
+  '/analytics_backup': typeof Analytics_backupRoute
+  '/api-management': typeof ApiManagementRoute
   '/approvals': typeof ApprovalsRoute
+  '/brain': typeof BrainRoute
+  '/new-workflow': typeof NewWorkflowRoute
   '/settings': typeof SettingsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/agents' | '/analytics' | '/approvals' | '/settings'
+  fullPaths:
+    | '/'
+    | '/agents'
+    | '/analytics'
+    | '/analytics_backup'
+    | '/api-management'
+    | '/approvals'
+    | '/brain'
+    | '/new-workflow'
+    | '/settings'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/agents' | '/analytics' | '/approvals' | '/settings'
-  id: '__root__' | '/' | '/agents' | '/analytics' | '/approvals' | '/settings'
+  to:
+    | '/'
+    | '/agents'
+    | '/analytics'
+    | '/analytics_backup'
+    | '/api-management'
+    | '/approvals'
+    | '/brain'
+    | '/new-workflow'
+    | '/settings'
+  id:
+    | '__root__'
+    | '/'
+    | '/agents'
+    | '/analytics'
+    | '/analytics_backup'
+    | '/api-management'
+    | '/approvals'
+    | '/brain'
+    | '/new-workflow'
+    | '/settings'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AgentsRoute: typeof AgentsRoute
   AnalyticsRoute: typeof AnalyticsRoute
+  Analytics_backupRoute: typeof Analytics_backupRoute
+  ApiManagementRoute: typeof ApiManagementRoute
   ApprovalsRoute: typeof ApprovalsRoute
+  BrainRoute: typeof BrainRoute
+  NewWorkflowRoute: typeof NewWorkflowRoute
   SettingsRoute: typeof SettingsRoute
 }
 
@@ -102,11 +170,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AnalyticsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/analytics_backup': {
+      id: '/analytics_backup'
+      path: '/analytics_backup'
+      fullPath: '/analytics_backup'
+      preLoaderRoute: typeof Analytics_backupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api-management': {
+      id: '/api-management'
+      path: '/api-management'
+      fullPath: '/api-management'
+      preLoaderRoute: typeof ApiManagementRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/approvals': {
       id: '/approvals'
       path: '/approvals'
       fullPath: '/approvals'
       preLoaderRoute: typeof ApprovalsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/brain': {
+      id: '/brain'
+      path: '/brain'
+      fullPath: '/brain'
+      preLoaderRoute: typeof BrainRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/new-workflow': {
+      id: '/new-workflow'
+      path: '/new-workflow'
+      fullPath: '/new-workflow'
+      preLoaderRoute: typeof NewWorkflowRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings': {
@@ -123,7 +219,11 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AgentsRoute: AgentsRoute,
   AnalyticsRoute: AnalyticsRoute,
+  Analytics_backupRoute: Analytics_backupRoute,
+  ApiManagementRoute: ApiManagementRoute,
   ApprovalsRoute: ApprovalsRoute,
+  BrainRoute: BrainRoute,
+  NewWorkflowRoute: NewWorkflowRoute,
   SettingsRoute: SettingsRoute,
 }
 export const routeTree = rootRouteImport
