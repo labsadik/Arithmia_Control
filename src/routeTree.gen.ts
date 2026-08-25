@@ -12,7 +12,6 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AgentsRouteImport } from './routes/agents'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
-import { Route as Analytics_backupRouteImport } from './routes/analytics_backup'
 import { Route as ApiManagementRouteImport } from './routes/api-management'
 import { Route as ApprovalsRouteImport } from './routes/approvals'
 import { Route as BrainRouteImport } from './routes/brain'
@@ -32,11 +31,6 @@ const AgentsRoute = AgentsRouteImport.update({
 const AnalyticsRoute = AnalyticsRouteImport.update({
   id: '/analytics',
   path: '/analytics',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const Analytics_backupRoute = Analytics_backupRouteImport.update({
-  id: '/analytics_backup',
-  path: '/analytics_backup',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiManagementRoute = ApiManagementRouteImport.update({
@@ -69,7 +63,6 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/agents': typeof AgentsRoute
   '/analytics': typeof AnalyticsRoute
-  '/analytics_backup': typeof Analytics_backupRoute
   '/api-management': typeof ApiManagementRoute
   '/approvals': typeof ApprovalsRoute
   '/brain': typeof BrainRoute
@@ -80,7 +73,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/agents': typeof AgentsRoute
   '/analytics': typeof AnalyticsRoute
-  '/analytics_backup': typeof Analytics_backupRoute
   '/api-management': typeof ApiManagementRoute
   '/approvals': typeof ApprovalsRoute
   '/brain': typeof BrainRoute
@@ -92,7 +84,6 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/agents': typeof AgentsRoute
   '/analytics': typeof AnalyticsRoute
-  '/analytics_backup': typeof Analytics_backupRoute
   '/api-management': typeof ApiManagementRoute
   '/approvals': typeof ApprovalsRoute
   '/brain': typeof BrainRoute
@@ -105,7 +96,6 @@ export interface FileRouteTypes {
     | '/'
     | '/agents'
     | '/analytics'
-    | '/analytics_backup'
     | '/api-management'
     | '/approvals'
     | '/brain'
@@ -116,7 +106,6 @@ export interface FileRouteTypes {
     | '/'
     | '/agents'
     | '/analytics'
-    | '/analytics_backup'
     | '/api-management'
     | '/approvals'
     | '/brain'
@@ -127,7 +116,6 @@ export interface FileRouteTypes {
     | '/'
     | '/agents'
     | '/analytics'
-    | '/analytics_backup'
     | '/api-management'
     | '/approvals'
     | '/brain'
@@ -139,7 +127,6 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AgentsRoute: typeof AgentsRoute
   AnalyticsRoute: typeof AnalyticsRoute
-  Analytics_backupRoute: typeof Analytics_backupRoute
   ApiManagementRoute: typeof ApiManagementRoute
   ApprovalsRoute: typeof ApprovalsRoute
   BrainRoute: typeof BrainRoute
@@ -168,13 +155,6 @@ declare module '@tanstack/react-router' {
       path: '/analytics'
       fullPath: '/analytics'
       preLoaderRoute: typeof AnalyticsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/analytics_backup': {
-      id: '/analytics_backup'
-      path: '/analytics_backup'
-      fullPath: '/analytics_backup'
-      preLoaderRoute: typeof Analytics_backupRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api-management': {
@@ -219,7 +199,6 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AgentsRoute: AgentsRoute,
   AnalyticsRoute: AnalyticsRoute,
-  Analytics_backupRoute: Analytics_backupRoute,
   ApiManagementRoute: ApiManagementRoute,
   ApprovalsRoute: ApprovalsRoute,
   BrainRoute: BrainRoute,

@@ -99,15 +99,6 @@ const RESOLUTION_STYLES: Record<
 
 /**
  * Safely format an action type coming from the database.
- *
- * Prevents:
- *   Cannot read properties of undefined (reading 'replaceAll')
- *
- * Examples:
- *   "send_email" -> "Send Email"
- *   "delete_user" -> "Delete User"
- *   null -> "Unknown action"
- *   undefined -> "Unknown action"
  */
 function formatActionType(
   actionType: string | null | undefined,
@@ -169,10 +160,6 @@ function ApprovalsPage() {
 
   /**
    * Load approvals from Supabase.
-   *
-   * Database records can contain NULL values.
-   * Normalize them here so the UI never crashes because of
-   * undefined/null fields.
    */
   const {
     data: approvals = [],
@@ -261,7 +248,7 @@ function ApprovalsPage() {
         .update({
           status: decision,
           resolved_at: new Date().toISOString(),
-          resolved_by: "Jane Doe",
+          resolved_by: "Swastik Naskar", // Updated to Swastik Naskar
         })
         .eq("id", id);
 
@@ -356,7 +343,7 @@ function ApprovalsPage() {
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-3">
         {/* Pending */}
-        <Card className="card-glow border-border bg-card transition-all duration-300 cursor-pointer hover:shadow-xl hover:[transform:perspective(1000px)_translateY(-10px)_rotateX(10deg)]">
+        <Card className="card-glow border-border bg-card transition-all duration-300 cursor-pointer hover:-translate-y-2 hover:shadow-xl hover:border-warning/30">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <p className="text-sm font-medium text-muted-foreground">
               Pending Review
@@ -375,7 +362,7 @@ function ApprovalsPage() {
         </Card>
 
         {/* Critical */}
-        <Card className="card-glow border-border bg-card transition-all duration-300 cursor-pointer hover:shadow-xl hover:[transform:perspective(1000px)_translateY(-10px)_rotateX(10deg)]">
+        <Card className="card-glow border-border bg-card transition-all duration-300 cursor-pointer hover:-translate-y-2 hover:shadow-xl hover:border-danger/30">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <p className="text-sm font-medium text-muted-foreground">
               Critical Pending
@@ -394,7 +381,7 @@ function ApprovalsPage() {
         </Card>
 
         {/* Resolved */}
-        <Card className="card-glow border-border bg-card transition-all duration-300 cursor-pointer hover:shadow-xl hover:[transform:perspective(1000px)_translateY(-10px)_rotateX(10deg)]">
+        <Card className="card-glow border-border bg-card transition-all duration-300 cursor-pointer hover:-translate-y-2 hover:shadow-xl hover:border-success/30">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <p className="text-sm font-medium text-muted-foreground">
               Resolved
@@ -415,7 +402,7 @@ function ApprovalsPage() {
 
       {/* Database error */}
       {isError && (
-        <Card className="border-danger/30 bg-danger/5 transition-all duration-300 hover:shadow-xl hover:[transform:perspective(1000px)_translateY(-10px)_rotateX(10deg)]">
+        <Card className="border-danger/30 bg-danger/5 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
           <CardContent className="py-4">
             <div className="flex items-start gap-3">
               <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-danger" />
@@ -507,7 +494,7 @@ function ApprovalsPage() {
               {sorted.map((approval) => (
                 <TableRow
                   key={approval.id}
-                  className="cursor-pointer border-border hover:bg-accent/40"
+                  className="cursor-pointer border-border hover:bg-accent/40 transition-colors"
                   onClick={() =>
                     handleSelectApproval(approval)
                   }
@@ -528,9 +515,7 @@ function ApprovalsPage() {
                           variant="outline"
                           className="border-border text-[10px] uppercase tracking-wide text-muted-foreground"
                         >
-                          {formatActionType(
-                            approval.action_type,
-                          )}
+                          {formatActionType(approval.action_type)}
                         </Badge>
                       </div>
                     </div>
@@ -671,9 +656,7 @@ function ApprovalsPage() {
                     </dt>
 
                     <dd className="mt-0.5 font-medium text-foreground">
-                      {formatActionType(
-                        selected.action_type,
-                      )}
+                      {formatActionType(selected.action_type)}
                     </dd>
                   </div>
 
@@ -790,8 +773,14 @@ function ApprovalsPage() {
 
       {/* Guidelines Pop-up */}
       {guidelinesOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/80 backdrop-blur-sm transition-all">
-          <div className="w-full max-w-md rounded-xl border border-border bg-card p-6 shadow-2xl">
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-background/80 backdrop-blur-sm transition-all"
+          onClick={() => setGuidelinesOpen(false)} // Close on overlay click
+        >
+          <div 
+            className="w-full max-w-md rounded-xl border border-border bg-card p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()} // Prevent clicks inside from closing
+          >
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-lg font-semibold text-foreground">
                 Guidelines & Instructions

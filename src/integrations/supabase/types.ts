@@ -15,6 +15,7 @@ export type Database = {
 
   public: {
     Tables: {
+<<<<<<< HEAD
       agents: {
         Row: {
           id: string;
@@ -232,6 +233,137 @@ export type Database = {
       };
     };
 
+=======
+      activity_events: {
+        Row: {
+          agent_name: string
+          created_at: string
+          id: string
+          message: string
+          status: string
+        }
+        Insert: {
+          agent_name: string
+          created_at?: string
+          id?: string
+          message: string
+          status?: string
+        }
+        Update: {
+          agent_name?: string
+          created_at?: string
+          id?: string
+          message?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      agents: {
+        Row: {
+          cost_usd: number
+          created_at: string
+          environment: string
+          id: string
+          last_active_at: string
+          model: string
+          name: string
+          status: string
+          success_rate: number
+          tasks_completed: number
+          tokens_used: number
+          updated_at: string
+        }
+        Insert: {
+          cost_usd?: number
+          created_at?: string
+          environment?: string
+          id?: string
+          last_active_at?: string
+          model?: string
+          name: string
+          status?: string
+          success_rate?: number
+          tasks_completed?: number
+          tokens_used?: number
+          updated_at?: string
+        }
+        Update: {
+          cost_usd?: number
+          created_at?: string
+          environment?: string
+          id?: string
+          last_active_at?: string
+          model?: string
+          name?: string
+          status?: string
+          success_rate?: number
+          tasks_completed?: number
+          tokens_used?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      approvals: {
+        Row: {
+          action_type: string
+          agent_id: string | null
+          agent_name: string
+          created_at: string
+          description: string | null
+          id: string
+          payload: Json
+          requested_at: string
+          resolved_at: string | null
+          resolved_by: string | null
+          risk_level: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          action_type: string
+          agent_id?: string | null
+          agent_name: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          payload?: Json
+          requested_at?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          risk_level?: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          action_type?: string
+          agent_id?: string | null
+          agent_name?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          payload?: Json
+          requested_at?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          risk_level?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "approvals_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+    }
+>>>>>>> 04fca09acba815cc267434882d91a334a589231c
     Views: {
       [_ in never]: never;
     };

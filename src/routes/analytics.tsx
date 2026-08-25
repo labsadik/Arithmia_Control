@@ -13,12 +13,12 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import {
-  Area,
-  AreaChart,
   Bar,
   BarChart,
   CartesianGrid,
   Cell,
+  Pie,
+  PieChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -168,15 +168,17 @@ function AnalyticsPage() {
   const queryClient = useQueryClient();
 
   const [animate, setAnimate] = useState(false);
-  const [liveAgents, setLiveAgents] = useState<Agent[]>([]);
-  const [topModels, setTopModels] = useState<string[]>([]);
-  const [history, setHistory] = useState<{ time: string; [key: string]: number | string }[]>([]);
-  const [prevMonthData, setPrevMonthData] = useState<{ cost: number; tokens: number; tasks: number } | null>(null);
 
   /*
    * ==========================================================================
    * REAL DATABASE QUERY
    * ==========================================================================
+   *
+   * This is the ONLY source of analytics data.
+   *
+   * No fake data.
+   * No hardcoded agents.
+   * No local demo data.
    */
   const {
     data: agents = [],
@@ -202,9 +204,25 @@ function AnalyticsPage() {
       return data ?? [];
     },
 
+    /*
+     * Always consider the database authoritative.
+     */
     staleTime: 0,
+
+    /*
+     * Keep data in React Query cache.
+     */
     gcTime: 1000 * 60 * 30,
+
+    /*
+     * Refresh when user comes back to the browser tab.
+     */
     refetchOnWindowFocus: true,
+
+    /*
+     * Don't automatically poll.
+     * Realtime is responsible for updates.
+     */
     refetchInterval: false,
   });
 
@@ -212,132 +230,37 @@ function AnalyticsPage() {
    * ==========================================================================
    * SUPABASE REALTIME
    * ==========================================================================
+   *
+   * Your existing realtime hook should invalidate:
+   *
+   * ["analytics-agents"]
+   *
+   * whenever agents are INSERTED / UPDATED / DELETED.
    */
   useRealtimeTable("agents", [ANALYTICS_QUERY_KEY]);
 
   /*
-   * ==========================================================================
-   * DYNAMIC 1K USERS SIMULATION & INITIALIZE STOCK MARKET DATA
-   * ==========================================================================
+   * Animate charts whenever real database data changes.
    */
   useEffect(() => {
-    if (agents.length > 0 && liveAgents.length === 0) {
-      const targetCount = 1000;
-      const simulated = [...agents];
+    setAnimate(false);
 
-      while (simulated.length < targetCount) {
-        const baseAgent = agents[Math.floor(Math.random() * agents.length)];
-        const variance = 0.2 + Math.random() * 2.5;
+    const timer = window.setTimeout(() => {
+      setAnimate(true);
+    }, 100);
 
-        simulated.push({
-          ...baseAgent,
-          id: `${baseAgent.id}-sim-${simulated.length}`,
-          name: `${baseAgent.name} Node ${simulated.length + 1}`,
-          environment: Math.random() > 0.7 ? "staging" : "production",
-          status: Math.random() > 0.1 ? "running" : "idle",
-          cost_usd: Number(baseAgent.cost_usd ?? 1.5) * variance,
-          tokens_used: Math.floor(Number(baseAgent.tokens_used ?? 1000) * variance),
-          tasks_completed: Math.floor(Number(baseAgent.tasks_completed ?? 10) * variance),
-          success_rate: Math.min(99.9, Math.max(80, Number(baseAgent.success_rate ?? 95) + (Math.random() * 10 - 5))),
-        });
-      }
-
-      // Determine top 4 models for the stock market chart
-      const modelCosts = simulated.reduce<Record<string, number>>((acc, a) => {
-        const m = a.model || "Unknown";
-        acc[m] = (acc[m] ?? 0) + Number(a.cost_usd ?? 0);
-        return acc;
-      }, {});
-
-      const sortedTop = Object.entries(modelCosts)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 4)
-        .map(([name]) => name);
-
-      setTopModels(sortedTop);
-
-      const totalCost = simulated.reduce((sum, a) => sum + Number(a.cost_usd ?? 0), 0);
-      const totalTokens = simulated.reduce((sum, a) => sum + Number(a.tokens_used ?? 0), 0);
-      const totalTasks = simulated.reduce((sum, a) => sum + Number(a.tasks_completed ?? 0), 0);
-
-      setLiveAgents(simulated);
-      setPrevMonthData({
-        cost: totalCost * (0.75 + Math.random() * 0.2),
-        tokens: totalTokens * (0.75 + Math.random() * 0.2),
-        tasks: totalTasks * (0.75 + Math.random() * 0.2),
-      });
-    }
-  }, [agents, liveAgents.length]);
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [agents]);
 
   /*
    * ==========================================================================
-   * PER-SECOND LIVE UPDATES (STOCK MARKET TICKER)
+   * MANUAL REFRESH
    * ==========================================================================
    */
-  useEffect(() => {
-    if (liveAgents.length === 0 || topModels.length === 0) return;
-
-    const interval = setInterval(() => {
-      setLiveAgents((prev) => {
-        const updated = prev.map((agent) => {
-          const costIncrease = Math.random() * 0.5;
-          const tokenIncrease = Math.floor(Math.random() * 100);
-          const taskIncrease = Math.random() > 0.8 ? 1 : 0;
-
-          return {
-            ...agent,
-            cost_usd: Number(agent.cost_usd ?? 0) + costIncrease,
-            tokens_used: Number(agent.tokens_used ?? 0) + tokenIncrease,
-            tasks_completed: Number(agent.tasks_completed ?? 0) + taskIncrease,
-            status: Math.random() > 0.02 ? agent.status : (agent.status === "running" ? "idle" : "running"),
-          };
-        });
-
-        // Update chart history
-        const currentCosts = updated.reduce<Record<string, number>>((acc, a) => {
-          const m = a.model || "Unknown";
-          acc[m] = (acc[m] ?? 0) + Number(a.cost_usd ?? 0);
-          return acc;
-        }, {});
-
-        setHistory((h) => {
-          const now = new Date();
-          const timeLabel = `${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
-          const entry: { time: string; [key: string]: number | string } = { time: timeLabel };
-          
-          topModels.forEach((model) => {
-            entry[model] = currentCosts[model] ?? 0;
-          });
-          
-          const next = [...h, entry];
-          return next.slice(-30); // Keep last 30 seconds
-        });
-
-        return updated;
-      });
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [liveAgents.length, topModels]);
-
-  useEffect(() => {
-    if (liveAgents.length === 0) return;
-
-    setAnimate(false);
-    const timer = window.setTimeout(() => setAnimate(true), 100);
-    return () => window.clearTimeout(timer);
-  }, [liveAgents.length]);
-
-  const topAgentsToDisplay = useMemo(() => {
-    return [...liveAgents]
-      .sort((a, b) => Number(b.cost_usd ?? 0) - Number(a.cost_usd ?? 0))
-      .slice(0, 15);
-  }, [liveAgents]);
 
   const refreshAnalytics = () => {
-    setLiveAgents([]);
-    setHistory([]);
-    setPrevMonthData(null);
     queryClient.invalidateQueries({
       queryKey: ANALYTICS_QUERY_KEY,
     });
@@ -347,47 +270,61 @@ function AnalyticsPage() {
    * ==========================================================================
    * DYNAMIC ANALYTICS
    * ==========================================================================
+   *
+   * Everything below is calculated directly from `agents`.
+   *
+   * When Supabase changes the agents table:
+   *
+   * Supabase
+   *   ↓
+   * realtime
+   *   ↓
+   * React Query
+   *   ↓
+   * agents
+   *   ↓
+   * this useMemo
+   *   ↓
+   * UI / charts / table
    */
   const analytics = useMemo(() => {
-    const list = liveAgents;
-
-    const totalCost = list.reduce(
+    const totalCost = agents.reduce(
       (sum, agent) => sum + Number(agent.cost_usd ?? 0),
       0,
     );
 
-    const totalTokens = list.reduce(
+    const totalTokens = agents.reduce(
       (sum, agent) => sum + Number(agent.tokens_used ?? 0),
       0,
     );
 
-    const totalTasks = list.reduce(
+    const totalTasks = agents.reduce(
       (sum, agent) => sum + Number(agent.tasks_completed ?? 0),
       0,
     );
 
     const averageSuccessRate =
-      list.length > 0
-        ? list.reduce(
+      agents.length > 0
+        ? agents.reduce(
             (sum, agent) =>
               sum + Number(agent.success_rate ?? 0),
             0,
-          ) / list.length
+          ) / agents.length
         : 0;
 
-    const runningAgents = list.filter(
+    const runningAgents = agents.filter(
       (agent) => agent.status === "running",
     ).length;
 
-    const failedAgents = list.filter(
+    const failedAgents = agents.filter(
       (agent) => agent.status === "error",
     ).length;
 
-    const productionAgents = list.filter(
+    const productionAgents = agents.filter(
       (agent) => agent.environment === "production",
     ).length;
 
-    const stagingAgents = list.filter(
+    const stagingAgents = agents.filter(
       (agent) => agent.environment === "staging",
     ).length;
 
@@ -402,8 +339,8 @@ function AnalyticsPage() {
         : 0;
 
     const topCostAgent =
-      list.length > 0
-        ? list.reduce((highest, agent) =>
+      agents.length > 0
+        ? agents.reduce((highest, agent) =>
             Number(agent.cost_usd ?? 0) >
             Number(highest.cost_usd ?? 0)
               ? agent
@@ -412,8 +349,8 @@ function AnalyticsPage() {
         : null;
 
     const topSuccessAgent =
-      list.length > 0
-        ? list.reduce((highest, agent) =>
+      agents.length > 0
+        ? agents.reduce((highest, agent) =>
             Number(agent.success_rate ?? 0) >
             Number(highest.success_rate ?? 0)
               ? agent
@@ -421,12 +358,17 @@ function AnalyticsPage() {
           )
         : null;
 
-    const modelCosts = list.reduce<Record<string, number>>(
+    /*
+     * Model cost distribution.
+     */
+    const modelCosts = agents.reduce<Record<string, number>>(
       (result, agent) => {
         const model = agent.model || "Unknown";
+
         result[model] =
           (result[model] ?? 0) +
           Number(agent.cost_usd ?? 0);
+
         return result;
       },
       {},
@@ -441,46 +383,30 @@ function AnalyticsPage() {
           CHART_COLORS[index % CHART_COLORS.length],
       }));
 
-    const productionCost = list
-      .filter((agent) => agent.environment === "production")
-      .reduce((sum, agent) => sum + Number(agent.cost_usd ?? 0), 0);
-
-    const stagingCost = list
-      .filter((agent) => agent.environment === "staging")
-      .reduce((sum, agent) => sum + Number(agent.cost_usd ?? 0), 0);
-
-    const modelPerformance = Object.entries(
-      list.reduce<Record<string, { cost: number; tokens: number; tasks: number; agents: number; successRates: number[] }>>(
-        (acc, agent) => {
-          const model = agent.model || "Unknown";
-          if (!acc[model]) {
-            acc[model] = { cost: 0, tokens: 0, tasks: 0, agents: 0, successRates: [] };
-          }
-          acc[model].cost += Number(agent.cost_usd ?? 0);
-          acc[model].tokens += Number(agent.tokens_used ?? 0);
-          acc[model].tasks += Number(agent.tasks_completed ?? 0);
-          acc[model].agents += 1;
-          acc[model].successRates.push(Number(agent.success_rate ?? 0));
-          return acc;
-        },
-        {}
+    /*
+     * Environment costs.
+     */
+    const productionCost = agents
+      .filter(
+        (agent) =>
+          agent.environment === "production",
       )
-    ).map(([model, data]) => ({
-      model,
-      cost: data.cost,
-      tokens: data.tokens,
-      tasks: data.tasks,
-      agents: data.agents,
-      avgSuccessRate: data.successRates.length > 0 ? data.successRates.reduce((a, b) => a + b, 0) / data.successRates.length : 0,
-    })).sort((a, b) => b.cost - a.cost);
+      .reduce(
+        (sum, agent) =>
+          sum + Number(agent.cost_usd ?? 0),
+        0,
+      );
 
-    const previousMonthCost = prevMonthData?.cost ?? 0;
-    const previousMonthTokens = prevMonthData?.tokens ?? 0;
-    const previousMonthTasks = prevMonthData?.tasks ?? 0;
-
-    const costTrend = previousMonthCost > 0 ? ((totalCost - previousMonthCost) / previousMonthCost) * 100 : 0;
-    const tokenTrend = previousMonthTokens > 0 ? ((totalTokens - previousMonthTokens) / previousMonthTokens) * 100 : 0;
-    const taskTrend = previousMonthTasks > 0 ? ((totalTasks - previousMonthTasks) / previousMonthTasks) * 100 : 0;
+    const stagingCost = agents
+      .filter(
+        (agent) =>
+          agent.environment === "staging",
+      )
+      .reduce(
+        (sum, agent) =>
+          sum + Number(agent.cost_usd ?? 0),
+        0,
+      );
 
     return {
       totalCost,
@@ -499,17 +425,16 @@ function AnalyticsPage() {
       chartData,
       productionCost,
       stagingCost,
-      previousMonthCost,
-      previousMonthTokens,
-      previousMonthTasks,
-      costTrend,
-      tokenTrend,
-      taskTrend,
-      modelPerformance,
     };
-  }, [liveAgents, prevMonthData]);
+  }, [agents]);
 
-  if (isLoading || liveAgents.length === 0) {
+  /*
+   * ==========================================================================
+   * LOADING
+   * ==========================================================================
+   */
+
+  if (isLoading) {
     return (
       <div className="space-y-6">
         <PageHeader isFetching={false} />
@@ -518,13 +443,19 @@ function AnalyticsPage() {
           <CardContent className="flex min-h-[400px] items-center justify-center">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />
-              Loading analytics & simulating 1,000 agents...
+              Loading analytics from Supabase...
             </div>
           </CardContent>
         </Card>
       </div>
     );
   }
+
+  /*
+   * ==========================================================================
+   * ERROR
+   * ==========================================================================
+   */
 
   if (isError) {
     return (
@@ -562,19 +493,25 @@ function AnalyticsPage() {
     );
   }
 
+  /*
+   * ==========================================================================
+   * UI
+   * ==========================================================================
+   */
+
   return (
     <div className="space-y-6 pb-10">
       <PageHeader isFetching={isFetching} />
 
       {/* ================================================================
-         PRIMARY METRICS
+          PRIMARY METRICS
       ================================================================= */}
+
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           title="Total Spend"
           value={formatCurrency(analytics.totalCost)}
-          description={`vs ${formatCurrency(analytics.previousMonthCost)} last month`}
-          trend={analytics.costTrend}
+          description="Across all agents"
           icon={Coins}
           iconClass="bg-primary/10 text-primary"
         />
@@ -582,15 +519,16 @@ function AnalyticsPage() {
         <MetricCard
           title="Tokens Used"
           value={formatTokens(analytics.totalTokens)}
-          description={`vs ${formatTokens(analytics.previousMonthTokens)} last month`}
-          trend={analytics.tokenTrend}
+          description={`${formatTokens(analytics.tokensPerTask)} per task`}
           icon={Zap}
           iconClass="bg-warning/10 text-warning"
         />
 
         <MetricCard
           title="Success Rate"
-          value={formatPercent(analytics.averageSuccessRate)}
+          value={formatPercent(
+            analytics.averageSuccessRate,
+          )}
           description="Average across agents"
           icon={CheckCircle2}
           iconClass="bg-success/10 text-success"
@@ -598,7 +536,7 @@ function AnalyticsPage() {
 
         <MetricCard
           title="Active Agents"
-          value={`${analytics.runningAgents}/${liveAgents.length}`}
+          value={`${analytics.runningAgents}/${agents.length}`}
           description={`${analytics.failedAgents} currently in error`}
           icon={Bot}
           iconClass="bg-primary/10 text-primary"
@@ -606,110 +544,102 @@ function AnalyticsPage() {
       </div>
 
       {/* ================================================================
-         STOCK MARKET CHARTS
+          COST OVERVIEW
       ================================================================= */}
+
       <div className="grid gap-4 lg:grid-cols-3">
-        {/* Live Market Cost Area Chart */}
-        <Card className="card-glow border-border bg-card lg:col-span-2 transition-all duration-300 cursor-pointer hover:shadow-xl hover:[transform:perspective(1000px)_translateY(-10px)_rotateX(10deg)]">
+        <Card className="card-glow border-border bg-card lg:col-span-2">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="text-base font-semibold">
-                  Live Market Cost (Top 4 Models)
+                  Model-wise Cost Distribution
                 </CardTitle>
 
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Real-time spend tracking (30s rolling window)
+                  Live spend breakdown by AI model
                 </p>
               </div>
 
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                <Activity className="h-4 w-4 animate-pulse" />
+                <BarChart3 className="h-4 w-4" />
               </div>
             </div>
           </CardHeader>
 
           <CardContent>
             <div className="h-[300px] w-full">
-              {history.length === 0 ? (
+              {analytics.chartData.length === 0 ? (
                 <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-                  Initializing live market data...
+                  No cost data available in the agents table.
                 </div>
               ) : (
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={history} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                    <defs>
-                      {topModels.map((model, i) => (
-                        <linearGradient key={model} id={`color-${i}`} x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor={CHART_COLORS[i % CHART_COLORS.length]} stopOpacity={0.8} />
-                          <stop offset="95%" stopColor={CHART_COLORS[i % CHART_COLORS.length]} stopOpacity={0} />
-                        </linearGradient>
-                      ))}
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-border/30" />
-                    <XAxis dataKey="time" tick={{ fontSize: 10 }} className="text-muted-foreground" />
-                    <YAxis 
-                      tickFormatter={(value) => `$${(Number(value) / 1000).toFixed(1)}k`} 
-                      tick={{ fontSize: 10 }} 
-                      className="text-muted-foreground"
-                      width={50}
+                <ResponsiveContainer
+                  width="100%"
+                  height="100%"
+                >
+                  <BarChart
+                    data={analytics.chartData}
+                    margin={{
+                      top: 20,
+                      right: 10,
+                      left: 10,
+                      bottom: 20,
+                    }}
+                  >
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      className="stroke-border/50"
                     />
-                    <Tooltip content={<StockTooltip modelPerformance={analytics.modelPerformance} />} />
-                    {topModels.map((model, i) => (
-                      <Area 
-                        key={model} 
-                        type="monotone" 
-                        dataKey={model} 
-                        stroke={CHART_COLORS[i % CHART_COLORS.length]} 
-                        fill={`url(#color-${i})`} 
-                        strokeWidth={2}
-                        isAnimationActive={false}
-                      />
-                    ))}
-                  </AreaChart>
-                </ResponsiveContainer>
-              )}
-            </div>
-          </CardContent>
-        </Card>
 
-        {/* Market Volume Bar Chart */}
-        <Card className="card-glow border-border bg-card transition-all duration-300 cursor-pointer hover:shadow-xl hover:[transform:perspective(1000px)_translateY(-10px)_rotateX(10deg)]">
-          <CardHeader>
-            <CardTitle className="text-base font-semibold">
-              Market Volume
-            </CardTitle>
+                    <XAxis
+                      dataKey="name"
+                      tick={{ fontSize: 11 }}
+                      className="text-muted-foreground"
+                      angle={-15}
+                      textAnchor="end"
+                      height={50}
+                    />
 
-            <p className="text-xs text-muted-foreground">
-              Tasks completed by model
-            </p>
-          </CardHeader>
+                    <YAxis
+                      tickFormatter={(value) =>
+                        formatCurrency(value)
+                      }
+                      tick={{ fontSize: 11 }}
+                      className="text-muted-foreground"
+                      width={70}
+                    />
 
-          <CardContent>
-            <div className="h-[300px] w-full">
-              {analytics.modelPerformance.length === 0 ? (
-                <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-                  No volume data available.
-                </div>
-              ) : (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={analytics.modelPerformance} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-border/30" />
-                    <XAxis dataKey="model" tick={{ fontSize: 10 }} className="text-muted-foreground" />
-                    <YAxis tick={{ fontSize: 10 }} className="text-muted-foreground" width={40} />
-                    <Tooltip 
+                    <Tooltip
                       contentStyle={{
-                        backgroundColor: "hsl(var(--background))",
-                        border: "1px solid hsl(var(--border))",
+                        backgroundColor:
+                          "hsl(var(--background))",
+                        border:
+                          "1px solid hsl(var(--border))",
                         borderRadius: "8px",
                         fontSize: "12px",
                       }}
-                      formatter={(value: number) => [formatNumber(value), "Tasks"]}
+                      formatter={(value: number) => [
+                        formatCurrency(value),
+                        "Cost",
+                      ]}
                     />
-                    <Bar dataKey="tasks" radius={[4, 4, 0, 0]} isAnimationActive={animate}>
-                      {analytics.modelPerformance.map((entry, index) => (
-                        <Cell key={`vol-cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
-                      ))}
+
+                    <Bar
+                      dataKey="value"
+                      radius={[4, 4, 0, 0]}
+                      animationDuration={800}
+                      animationEasing="ease-out"
+                      isAnimationActive={animate}
+                    >
+                      {analytics.chartData.map(
+                        (entry, index) => (
+                          <Cell
+                            key={`bar-cell-${entry.name}-${index}`}
+                            fill={entry.color}
+                          />
+                        ),
+                      )}
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
@@ -717,46 +647,160 @@ function AnalyticsPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Pie */}
+
+        <Card className="card-glow border-border bg-card">
+          <CardHeader>
+            <CardTitle className="text-base font-semibold">
+              Cost Distribution
+            </CardTitle>
+
+            <p className="text-xs text-muted-foreground">
+              Percentage by model
+            </p>
+          </CardHeader>
+
+          <CardContent>
+            <div className="h-[280px] w-full">
+              {analytics.chartData.length === 0 ? (
+                <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+                  No data available.
+                </div>
+              ) : (
+                <ResponsiveContainer
+                  width="100%"
+                  height="100%"
+                >
+                  <PieChart>
+                    <Pie
+                      data={analytics.chartData}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={90}
+                      innerRadius={45}
+                      paddingAngle={2}
+                      animationDuration={1000}
+                      animationEasing="ease-out"
+                      isAnimationActive={animate}
+                      label={({
+                        name,
+                        percent,
+                      }) =>
+                        `${name} ${(
+                          percent * 100
+                        ).toFixed(0)}%`
+                      }
+                      labelLine={false}
+                    >
+                      {analytics.chartData.map(
+                        (entry, index) => (
+                          <Cell
+                            key={`pie-cell-${entry.name}-${index}`}
+                            fill={entry.color}
+                          />
+                        ),
+                      )}
+                    </Pie>
+
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor:
+                          "hsl(var(--background))",
+                        border:
+                          "1px solid hsl(var(--border))",
+                        borderRadius: "8px",
+                        fontSize: "12px",
+                      }}
+                      formatter={(value: number) => [
+                        formatCurrency(value),
+                        "Cost",
+                      ]}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+
+            <div className="mt-3 grid grid-cols-2 gap-2 border-t border-border pt-3">
+              <div className="text-center">
+                <p className="text-[10px] uppercase text-muted-foreground">
+                  Total Models
+                </p>
+
+                <p className="text-sm font-semibold text-foreground">
+                  {analytics.chartData.length}
+                </p>
+              </div>
+
+              <div className="text-center">
+                <p className="text-[10px] uppercase text-muted-foreground">
+                  Highest Cost
+                </p>
+
+                <p className="text-sm font-semibold text-foreground">
+                  {analytics.chartData.length > 0
+                    ? formatCurrency(
+                        analytics.chartData[0].value,
+                      )
+                    : "$0.00"}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* ================================================================
-         COST SUMMARY
+          COST SUMMARY
       ================================================================= */}
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <SummaryCard
           label="Production"
-          value={formatCurrency(analytics.productionCost)}
+          value={formatCurrency(
+            analytics.productionCost,
+          )}
           icon={Database}
           className="border-primary/20 bg-primary/5"
         />
 
         <SummaryCard
           label="Staging"
-          value={formatCurrency(analytics.stagingCost)}
+          value={formatCurrency(
+            analytics.stagingCost,
+          )}
           icon={Activity}
           className="border-warning/20 bg-warning/5"
         />
 
         <SummaryCard
           label="Cost / Task"
-          value={formatCurrency(analytics.costPerTask)}
+          value={formatCurrency(
+            analytics.costPerTask,
+          )}
           icon={TrendingDown}
           className="border-success/20 bg-success/5"
         />
 
         <SummaryCard
           label="Total Tasks"
-          value={formatNumber(analytics.totalTasks)}
+          value={formatNumber(
+            analytics.totalTasks,
+          )}
           icon={CheckCircle2}
           className="border-blue-500/20 bg-blue-500/5"
         />
       </div>
 
       {/* ================================================================
-         TOP PERFORMERS
+          TOP PERFORMERS
       ================================================================= */}
+
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="card-glow border-border bg-card transition-all duration-300 cursor-pointer hover:shadow-xl hover:[transform:perspective(1000px)_translateY(-10px)_rotateX(10deg)]">
+        <Card className="card-glow border-border bg-card">
           <CardHeader>
             <CardTitle className="text-base font-semibold">
               Highest spend
@@ -778,11 +822,21 @@ function AnalyticsPage() {
 
                 <div className="text-right">
                   <p className="text-sm font-semibold text-foreground">
-                    {formatCurrency(Number(analytics.topCostAgent.cost_usd ?? 0))}
+                    {formatCurrency(
+                      Number(
+                        analytics.topCostAgent
+                          .cost_usd ?? 0,
+                      ),
+                    )}
                   </p>
 
                   <p className="mt-1 text-xs text-muted-foreground">
-                    {formatTokens(Number(analytics.topCostAgent.tokens_used ?? 0))}{" "}
+                    {formatTokens(
+                      Number(
+                        analytics.topCostAgent
+                          .tokens_used ?? 0,
+                      ),
+                    )}{" "}
                     tokens
                   </p>
                 </div>
@@ -793,7 +847,7 @@ function AnalyticsPage() {
           </CardContent>
         </Card>
 
-        <Card className="card-glow border-border bg-card transition-all duration-300 cursor-pointer hover:shadow-xl hover:[transform:perspective(1000px)_translateY(-10px)_rotateX(10deg)]">
+        <Card className="card-glow border-border bg-card">
           <CardHeader>
             <CardTitle className="text-base font-semibold">
               Highest success rate
@@ -815,11 +869,21 @@ function AnalyticsPage() {
 
                 <div className="text-right">
                   <p className="text-sm font-semibold text-success">
-                    {formatPercent(Number(analytics.topSuccessAgent.success_rate ?? 0))}
+                    {formatPercent(
+                      Number(
+                        analytics.topSuccessAgent
+                          .success_rate ?? 0,
+                      ),
+                    )}
                   </p>
 
                   <p className="mt-1 text-xs text-muted-foreground">
-                    {formatNumber(Number(analytics.topSuccessAgent.tasks_completed ?? 0))}{" "}
+                    {formatNumber(
+                      Number(
+                        analytics.topSuccessAgent
+                          .tasks_completed ?? 0,
+                      ),
+                    )}{" "}
                     tasks
                   </p>
                 </div>
@@ -832,71 +896,13 @@ function AnalyticsPage() {
       </div>
 
       {/* ================================================================
-         MODEL-WISE PERFORMANCE
+          AGENT PERFORMANCE
       ================================================================= */}
-      <Card className="card-glow border-border bg-card">
-        <CardHeader>
-          <CardTitle className="text-base font-semibold">
-            Model-wise Performance
-          </CardTitle>
-          <p className="text-xs text-muted-foreground">
-            Aggregated metrics broken down by AI model.
-          </p>
-        </CardHeader>
-        <CardContent className="px-0 pb-0">
-          {analytics.modelPerformance.length === 0 ? (
-            <div className="px-6 py-10 text-center text-sm text-muted-foreground">
-              No model data available.
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow className="border-border hover:bg-transparent">
-                    <TableHead className="pl-6">Model Name</TableHead>
-                    <TableHead className="text-right">Agents</TableHead>
-                    <TableHead className="text-right">Tasks</TableHead>
-                    <TableHead className="text-right">Tokens</TableHead>
-                    <TableHead className="text-right">Success</TableHead>
-                    <TableHead className="pr-6 text-right">Total Cost</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {analytics.modelPerformance.map((row) => (
-                    <TableRow key={row.model} className="border-border transition-colors hover:bg-muted/20">
-                      <TableCell className="pl-6">
-                        <span className="text-sm font-medium text-foreground">{row.model}</span>
-                      </TableCell>
-                      <TableCell className="text-right text-xs">{formatNumber(row.agents)}</TableCell>
-                      <TableCell className="text-right text-xs">{formatNumber(row.tasks)}</TableCell>
-                      <TableCell className="text-right text-xs text-muted-foreground">{formatTokens(row.tokens)}</TableCell>
-                      <TableCell className="text-right">
-                        <span className={cn(
-                          "text-xs font-medium",
-                          row.avgSuccessRate >= 99 ? "text-success" : row.avgSuccessRate >= 95 ? "text-warning" : "text-danger"
-                        )}>
-                          {formatPercent(row.avgSuccessRate)}
-                        </span>
-                      </TableCell>
-                      <TableCell className="pr-6 text-right">
-                        <span className="text-xs font-semibold text-foreground">{formatCurrency(row.cost)}</span>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
-      {/* ================================================================
-         AGENT PERFORMANCE
-      ================================================================= */}
       <Card className="card-glow border-border bg-card">
         <CardHeader>
           <CardTitle className="text-base font-semibold">
-            Agent-level analytics (Top 15)
+            Agent-level analytics
           </CardTitle>
 
           <p className="text-xs text-muted-foreground">
@@ -905,7 +911,7 @@ function AnalyticsPage() {
         </CardHeader>
 
         <CardContent className="px-0 pb-0">
-          {topAgentsToDisplay.length === 0 ? (
+          {agents.length === 0 ? (
             <div className="px-6 py-10 text-center text-sm text-muted-foreground">
               No agent analytics available.
             </div>
@@ -914,18 +920,38 @@ function AnalyticsPage() {
               <Table>
                 <TableHeader>
                   <TableRow className="border-border hover:bg-transparent">
-                    <TableHead className="pl-6">Agent</TableHead>
-                    <TableHead>Model</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Tasks</TableHead>
-                    <TableHead className="text-right">Success</TableHead>
-                    <TableHead className="text-right">Tokens</TableHead>
-                    <TableHead className="pr-6 text-right">Cost</TableHead>
+                    <TableHead className="pl-6">
+                      Agent
+                    </TableHead>
+
+                    <TableHead>
+                      Model
+                    </TableHead>
+
+                    <TableHead>
+                      Status
+                    </TableHead>
+
+                    <TableHead className="text-right">
+                      Tasks
+                    </TableHead>
+
+                    <TableHead className="text-right">
+                      Success
+                    </TableHead>
+
+                    <TableHead className="text-right">
+                      Tokens
+                    </TableHead>
+
+                    <TableHead className="pr-6 text-right">
+                      Cost
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
 
                 <TableBody>
-                  {topAgentsToDisplay.map((agent) => (
+                  {agents.map((agent) => (
                     <TableRow
                       key={agent.id}
                       className="border-border transition-colors hover:bg-muted/20"
@@ -953,39 +979,64 @@ function AnalyticsPage() {
                           variant="outline"
                           className={cn(
                             "text-[10px]",
-                            statusClasses(agent.status),
+                            statusClasses(
+                              agent.status,
+                            ),
                           )}
                         >
-                          {getStatusLabel(agent.status)}
+                          {getStatusLabel(
+                            agent.status,
+                          )}
                         </Badge>
                       </TableCell>
 
                       <TableCell className="text-right text-xs">
-                        {formatNumber(Number(agent.tasks_completed ?? 0))}
+                        {formatNumber(
+                          Number(
+                            agent.tasks_completed ?? 0,
+                          ),
+                        )}
                       </TableCell>
 
                       <TableCell className="text-right">
                         <span
                           className={cn(
                             "text-xs font-medium",
-                            Number(agent.success_rate ?? 0) >= 99
+                            Number(
+                              agent.success_rate ?? 0,
+                            ) >= 99
                               ? "text-success"
-                              : Number(agent.success_rate ?? 0) >= 95
+                              : Number(
+                                    agent.success_rate ??
+                                      0,
+                                  ) >= 95
                                 ? "text-warning"
                                 : "text-danger",
                           )}
                         >
-                          {formatPercent(Number(agent.success_rate ?? 0))}
+                          {formatPercent(
+                            Number(
+                              agent.success_rate ?? 0,
+                            ),
+                          )}
                         </span>
                       </TableCell>
 
                       <TableCell className="text-right text-xs text-muted-foreground">
-                        {formatTokens(Number(agent.tokens_used ?? 0))}
+                        {formatTokens(
+                          Number(
+                            agent.tokens_used ?? 0,
+                          ),
+                        )}
                       </TableCell>
 
                       <TableCell className="pr-6 text-right">
                         <span className="text-xs font-semibold text-foreground">
-                          {formatCurrency(Number(agent.cost_usd ?? 0))}
+                          {formatCurrency(
+                            Number(
+                              agent.cost_usd ?? 0,
+                            ),
+                          )}
                         </span>
                       </TableCell>
                     </TableRow>
@@ -994,6 +1045,63 @@ function AnalyticsPage() {
               </Table>
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      {/* ================================================================
+          DATABASE STATUS
+      ================================================================= */}
+
+      <Card className="border-border bg-card transition-colors hover:border-primary/20">
+        <CardContent className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-success/10 text-success">
+              <Activity className="h-4 w-4" />
+            </div>
+
+            <div>
+              <p className="text-sm font-medium text-foreground">
+                Analytics connected to Supabase
+              </p>
+
+              <p className="text-xs text-muted-foreground">
+                All metrics are calculated from the live agents table.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2 w-2">
+              <span
+                className={cn(
+                  "absolute inline-flex h-full w-full rounded-full opacity-75",
+                  isFetching
+                    ? "animate-ping bg-warning"
+                    : "animate-ping bg-success",
+                )}
+              />
+
+              <span
+                className={cn(
+                  "relative inline-flex h-2 w-2 rounded-full",
+                  isFetching
+                    ? "bg-warning"
+                    : "bg-success",
+                )}
+              />
+            </span>
+
+            <Badge
+              variant="outline"
+              className={cn(
+                isFetching
+                  ? "border-warning/25 bg-warning/5 text-warning"
+                  : "border-success/25 bg-success/5 text-success",
+              )}
+            >
+              {isFetching ? "Updating" : "Live"}
+            </Badge>
+          </div>
         </CardContent>
       </Card>
     </div>
@@ -1064,17 +1172,15 @@ function MetricCard({
   description,
   icon: Icon,
   iconClass,
-  trend,
 }: {
   title: string;
   value: string;
   description: string;
   icon: React.ElementType;
   iconClass: string;
-  trend?: number;
 }) {
   return (
-    <Card className="card-glow border-border bg-card transition-all duration-300 cursor-pointer hover:border-primary/20 hover:shadow-xl hover:[transform:perspective(1000px)_translateY(-10px)_rotateX(10deg)]">
+    <Card className="card-glow border-border bg-card transition-all hover:border-primary/20 hover:shadow-md">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <p className="text-sm font-medium text-muted-foreground">
           {title}
@@ -1095,21 +1201,9 @@ function MetricCard({
           {value}
         </div>
 
-        <div className="mt-1 flex items-center gap-2">
-          {trend !== undefined && (
-            <span
-              className={cn(
-                "text-xs font-medium",
-                trend >= 0 ? "text-success" : "text-danger",
-              )}
-            >
-              {trend >= 0 ? "▲" : "▼"} {Math.abs(trend).toFixed(1)}%
-            </span>
-          )}
-          <p className="text-xs text-muted-foreground">
-            {description}
-          </p>
-        </div>
+        <p className="mt-1 text-xs text-muted-foreground">
+          {description}
+        </p>
       </CardContent>
     </Card>
   );
@@ -1129,7 +1223,7 @@ function SummaryCard({
   return (
     <Card
       className={cn(
-        "border bg-card transition-all duration-300 cursor-pointer hover:shadow-xl hover:[transform:perspective(1000px)_translateY(-10px)_rotateX(10deg)]",
+        "border bg-card transition-all hover:shadow-md",
         className,
       )}
     >
@@ -1158,51 +1252,4 @@ function EmptyState() {
       No agent data available.
     </div>
   );
-}
-
-/* ============================================================================
-   Stock Market Custom Tooltip (Power Info Modal)
-============================================================================ */
-
-function StockTooltip({ active, payload, label, modelPerformance }: any) {
-  if (active && payload && payload.length) {
-    return (
-      <div className="rounded-lg border border-primary/30 bg-background/95 p-3 shadow-xl backdrop-blur-sm">
-        <div className="mb-2 flex items-center justify-between border-b border-border pb-1.5">
-          <span className="text-xs font-semibold text-foreground">⚡ Power Info</span>
-          <span className="text-[10px] text-muted-foreground">T: {label}</span>
-        </div>
-        <div className="space-y-2">
-          {payload.map((entry: any) => {
-            const modelInfo = modelPerformance.find((m: any) => m.model === entry.name);
-            return (
-              <div key={entry.name} className="flex flex-col gap-1">
-                <div className="flex items-center gap-2">
-                  <div className="h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: entry.color }} />
-                  <span className="text-xs font-medium text-foreground">{entry.name}</span>
-                  <span className="ml-auto text-xs font-bold text-foreground">
-                    {formatCurrency(Number(entry.value))}
-                  </span>
-                </div>
-                {modelInfo && (
-                  <div className="ml-4 flex gap-3 text-[10px] text-muted-foreground">
-                    <span>Agents: {formatNumber(modelInfo.agents)}</span>
-                    <span>Tasks: {formatNumber(modelInfo.tasks)}</span>
-                    <span>Tokens: {formatTokens(modelInfo.tokens)}</span>
-                    <span className={cn(
-                      "font-medium",
-                      modelInfo.avgSuccessRate >= 99 ? "text-success" : modelInfo.avgSuccessRate >= 95 ? "text-warning" : "text-danger"
-                    )}>
-                      {formatPercent(modelInfo.avgSuccessRate)}
-                    </span>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    );
-  }
-  return null;
 }
