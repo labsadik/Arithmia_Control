@@ -15,6 +15,7 @@ import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as ApiManagementRouteImport } from './routes/api-management'
 import { Route as ApprovalsRouteImport } from './routes/approvals'
 import { Route as BrainRouteImport } from './routes/brain'
+import { Route as EmplysRouteImport } from './routes/emplys'
 import { Route as NewWorkflowRouteImport } from './routes/new-workflow'
 import { Route as SettingsRouteImport } from './routes/settings'
 
@@ -48,6 +49,11 @@ const BrainRoute = BrainRouteImport.update({
   path: '/brain',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EmplysRoute = EmplysRouteImport.update({
+  id: '/emplys',
+  path: '/emplys',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const NewWorkflowRoute = NewWorkflowRouteImport.update({
   id: '/new-workflow',
   path: '/new-workflow',
@@ -66,6 +72,7 @@ export interface FileRoutesByFullPath {
   '/api-management': typeof ApiManagementRoute
   '/approvals': typeof ApprovalsRoute
   '/brain': typeof BrainRoute
+  '/emplys': typeof EmplysRoute
   '/new-workflow': typeof NewWorkflowRoute
   '/settings': typeof SettingsRoute
 }
@@ -76,6 +83,7 @@ export interface FileRoutesByTo {
   '/api-management': typeof ApiManagementRoute
   '/approvals': typeof ApprovalsRoute
   '/brain': typeof BrainRoute
+  '/emplys': typeof EmplysRoute
   '/new-workflow': typeof NewWorkflowRoute
   '/settings': typeof SettingsRoute
 }
@@ -87,6 +95,7 @@ export interface FileRoutesById {
   '/api-management': typeof ApiManagementRoute
   '/approvals': typeof ApprovalsRoute
   '/brain': typeof BrainRoute
+  '/emplys': typeof EmplysRoute
   '/new-workflow': typeof NewWorkflowRoute
   '/settings': typeof SettingsRoute
 }
@@ -99,6 +108,7 @@ export interface FileRouteTypes {
     | '/api-management'
     | '/approvals'
     | '/brain'
+    | '/emplys'
     | '/new-workflow'
     | '/settings'
   fileRoutesByTo: FileRoutesByTo
@@ -109,6 +119,7 @@ export interface FileRouteTypes {
     | '/api-management'
     | '/approvals'
     | '/brain'
+    | '/emplys'
     | '/new-workflow'
     | '/settings'
   id:
@@ -119,6 +130,7 @@ export interface FileRouteTypes {
     | '/api-management'
     | '/approvals'
     | '/brain'
+    | '/emplys'
     | '/new-workflow'
     | '/settings'
   fileRoutesById: FileRoutesById
@@ -130,6 +142,7 @@ export interface RootRouteChildren {
   ApiManagementRoute: typeof ApiManagementRoute
   ApprovalsRoute: typeof ApprovalsRoute
   BrainRoute: typeof BrainRoute
+  EmplysRoute: typeof EmplysRoute
   NewWorkflowRoute: typeof NewWorkflowRoute
   SettingsRoute: typeof SettingsRoute
 }
@@ -178,6 +191,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BrainRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/emplys': {
+      id: '/emplys'
+      path: '/emplys'
+      fullPath: '/emplys'
+      preLoaderRoute: typeof EmplysRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/new-workflow': {
       id: '/new-workflow'
       path: '/new-workflow'
@@ -202,6 +222,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiManagementRoute: ApiManagementRoute,
   ApprovalsRoute: ApprovalsRoute,
   BrainRoute: BrainRoute,
+  EmplysRoute: EmplysRoute,
   NewWorkflowRoute: NewWorkflowRoute,
   SettingsRoute: SettingsRoute,
 }

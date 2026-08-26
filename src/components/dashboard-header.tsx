@@ -124,7 +124,6 @@ const project: SupabaseProject = {
   maxDbConnections: 200,
 };
 
-// Hardcoded Admin Profile matching your exact DB data
 const adminProfile: Profile = {
   id: "1",
   name: "Swastik Naskar",
@@ -346,11 +345,11 @@ export function DashboardHeader() {
             "hover:shadow-md",
             "focus-visible:outline-none",
             "focus-visible:ring-2",
-            "focus-visible:ring-blue-500/30"
+            "focus-visible:ring-gray-900/20"
           )}
         >
-          <div className={cn("relative flex size-9 items-center", "justify-center rounded-xl", "bg-blue-50")}>
-            <Server className="size-4 text-blue-600" />
+          <div className={cn("relative flex size-9 items-center", "justify-center rounded-xl", "bg-gray-100")}>
+            <Server className="size-4 text-gray-700" />
             <span className={cn("absolute -right-0.5 -top-0.5", "size-2.5 rounded-full", "border-2 border-white", "bg-emerald-500 animate-pulse")} />
           </div>
 
@@ -420,7 +419,7 @@ export function DashboardHeader() {
             </div>
             <Avatar className="size-9 border border-gray-200">
               <AvatarImage src={adminProfile.avatar_url} alt="Swastik Naskar" />
-              <AvatarFallback className="bg-blue-50 text-xs font-bold text-blue-700">SN</AvatarFallback>
+              <AvatarFallback className="bg-gray-100 text-xs font-bold text-gray-600">SN</AvatarFallback>
             </Avatar>
           </button>
         </div>
@@ -459,8 +458,8 @@ export function DashboardHeader() {
             <div className={cn("sticky top-0 z-20", "border-b border-gray-200", "bg-white/95", "backdrop-blur-xl")}>
               <div className="flex min-h-20 items-center justify-between gap-4 px-5">
                 <div className="flex min-w-0 items-center gap-3">
-                  <div className={cn("relative flex size-11 shrink-0", "items-center justify-center", "rounded-2xl", "bg-blue-50")}>
-                    <Server className="size-5 text-blue-600" />
+                  <div className={cn("relative flex size-11 shrink-0", "items-center justify-center", "rounded-2xl", "bg-gray-100")}>
+                    <Server className="size-5 text-gray-700" />
                     <span className={cn("absolute right-0.5 top-0.5", "size-2.5 rounded-full", "border-2 border-white", "bg-emerald-500 animate-pulse")} />
                   </div>
                   <div className="min-w-0">
@@ -641,98 +640,122 @@ export function DashboardHeader() {
 }
 
 /* ========================================================================= */
-/* PROFILE MODAL COMPONENT                                                   */
+/* PREMIUM PROFILE MODAL COMPONENT                                           */
 /* ========================================================================= */
 
 function ProfileModal({ profile, onClose }: { profile: Profile; onClose: () => void }) {
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <button
-        type="button"
-        aria-label="Close profile"
-        onClick={onClose}
-        className="absolute inset-0 bg-gray-900/30 backdrop-blur-sm"
-      />
-
-      <div className="relative w-full max-w-2xl overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-2xl animate-in slide-in-from-bottom-5 duration-300">
-        
-        {/* Sticky Close Button */}
+    <div 
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+      onClick={onClose}
+    >
+      <div 
+        className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-100 relative"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Close Button (Glassmorphism Gray) */}
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-4 top-4 z-50 rounded-full bg-white/80 p-2 text-gray-600 hover:bg-white hover:text-gray-900 transition-colors shadow-sm backdrop-blur-sm"
+          className="absolute top-4 right-4 z-20 bg-white/70 backdrop-blur-md hover:bg-white text-gray-700 p-2 rounded-full transition-all border border-gray-200 shadow-sm"
         >
           <X className="size-4" />
         </button>
 
-        <div className="max-h-[85vh] overflow-y-auto">
-          {/* Header / Cover Media */}
-          <div className="relative h-44 shrink-0 bg-gray-100">
-            {profile.media_url ? (
-              <img src={profile.media_url} alt="Cover media" className="h-full w-full object-cover" />
-            ) : (
-              <div className="h-full w-full bg-gradient-to-r from-blue-50 to-indigo-50" />
-            )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-          </div>
+        {/* White & Gray Banner Section */}
+        <div className="h-52 w-full bg-gradient-to-br from-gray-100 to-gray-300 relative rounded-t-2xl border-b border-gray-200">
+          {profile.media_url ? (
+            <img src={profile.media_url || ''} alt="Cover" className="w-full h-full object-cover rounded-t-2xl opacity-90" />
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-300 rounded-t-2xl"></div>
+          )}
+        </div>
 
-          {/* Body */}
-          <div className="px-8 pb-8">
-            <div className="flex flex-col sm:flex-row sm:items-end gap-5 -mt-16 sm:-mt-20 mb-8 relative z-10">
-              {/* Avatar perfectly overlapping the banner */}
-              <div className="flex shrink-0 items-center justify-center rounded-3xl border-4 border-white bg-white shadow-lg size-32 overflow-hidden">
-                {profile.avatar_url ? (
-                  <img src={profile.avatar_url} alt={profile.name || "User"} className="size-full object-cover" />
-                ) : (
-                  <div className="size-full flex items-center justify-center bg-gray-50">
-                    <Users className="size-10 text-gray-400" />
-                  </div>
-                )}
-              </div>
-              
-              {/* Name & Position */}
-              <div className="flex-1 mb-2">
-                <h2 className="text-2xl font-bold text-gray-900">{profile.name || "Unknown User"}</h2>
-                <p className="text-sm font-medium text-blue-600 mt-1">{profile.position || "No position specified"}</p>
-              </div>
-            </div>
-
-            {/* Details Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="flex items-center gap-3 p-4 rounded-2xl border border-gray-100 bg-gray-50/50">
-                <Mail className="size-5 text-gray-400 shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-[10px] uppercase font-bold tracking-wider text-gray-500">Email</p>
-                  <p className="text-sm font-medium text-gray-900 truncate">{profile.email || "Not provided"}</p>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-3 p-4 rounded-2xl border border-gray-100 bg-gray-50/50">
-                <Briefcase className="size-5 text-gray-400 shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-[10px] uppercase font-bold tracking-wider text-gray-500">Position</p>
-                  <p className="text-sm font-medium text-gray-900 truncate">{profile.position || "Not provided"}</p>
-                </div>
-              </div>
-
-              {profile.website && (
-                <div className="flex items-center gap-3 p-4 rounded-2xl border border-gray-100 bg-gray-50/50 sm:col-span-2">
-                  <Globe className="size-5 text-gray-400 shrink-0" />
-                  <div className="min-w-0">
-                    <p className="text-[10px] uppercase font-bold tracking-wider text-gray-500">Website</p>
-                    <a href={`https://${profile.website}`} target="_blank" rel="noreferrer" className="text-sm font-medium text-blue-600 hover:underline truncate">
-                      {profile.website}
-                    </a>
-                  </div>
-                </div>
+        {/* Profile Header (Avatar + Name + Actions) */}
+        <div className="px-8 pb-6 border-b border-gray-100 flex flex-col sm:flex-row items-center sm:items-end gap-4 relative">
+          
+          {/* Profile Picture */}
+          <div className="absolute -top-16 left-8">
+            <div className="w-32 h-32 rounded-full border-4 border-white bg-gray-100 overflow-hidden flex items-center justify-center shadow-xl ring-1 ring-gray-200">
+              {profile.avatar_url ? (
+                <img src={profile.avatar_url || ''} alt={profile.name || 'Avatar'} className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-4xl font-bold text-gray-400">
+                  {profile.name ? profile.name.charAt(0).toUpperCase() : '?'}
+                </span>
               )}
             </div>
+          </div>
+          
+          {/* Name and Action Buttons */}
+          <div className="mt-16 sm:mt-0 sm:ml-36 flex-1 text-center sm:text-left">
+            <h2 className="text-2xl font-bold text-gray-900 tracking-tight">{profile.name || 'Unnamed'}</h2>
+            <p className="text-sm font-medium text-gray-500">{profile.position || 'No position set'}</p>
+          </div>
 
-            {/* Bio Log / Details */}
-            {profile.bio && (
-              <div className="mt-4 p-5 rounded-2xl border border-gray-100 bg-white">
-                <p className="text-[10px] uppercase font-bold tracking-wider text-gray-500 mb-2">Biography</p>
-                <p className="text-sm text-gray-600 leading-relaxed">{profile.bio}</p>
+          {/* Premium Dark Gray Action Buttons */}
+          <div className="flex gap-2 mt-2 sm:mt-0">
+            {profile.email && (
+              <a 
+                href={`mailto:${profile.email}`} 
+                className="bg-gray-900 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors inline-flex items-center gap-2 shadow-sm"
+              >
+                <Mail className="w-4 h-4" />
+                Message
+              </a>
+            )}
+            {profile.website && (
+              <a 
+                href={`https://${profile.website}`} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="bg-gray-100 text-gray-700 px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-colors inline-flex items-center gap-2 border border-gray-200"
+              >
+                <Globe className="w-4 h-4" />
+                Website
+              </a>
+            )}
+          </div>
+        </div>
+
+        {/* Body / About Section */}
+        <div className="p-8 space-y-6 bg-white">
+          {/* Bio */}
+          {profile.bio && (
+            <div>
+              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">About</h3>
+              <p className="text-sm text-gray-600 leading-relaxed">{profile.bio}</p>
+            </div>
+          )}
+
+          {/* Contact Info List */}
+          <div className="border-t border-gray-100 pt-6 space-y-4">
+            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Contact Info</h3>
+            
+            <div className="flex items-center gap-4 text-sm">
+              <div className="w-8 h-8 bg-gray-50 rounded-full flex items-center justify-center border border-gray-100">
+                <Mail className="size-4 text-gray-500" />
+              </div>
+              <span className="text-gray-600 font-medium">{profile.email || 'No email provided'}</span>
+            </div>
+
+            <div className="flex items-center gap-4 text-sm">
+              <div className="w-8 h-8 bg-gray-50 rounded-full flex items-center justify-center border border-gray-100">
+                <Briefcase className="size-4 text-gray-500" />
+              </div>
+              <span className="text-gray-600 font-medium">{profile.position || 'No position provided'}</span>
+            </div>
+
+            {profile.website && (
+              <div className="flex items-center gap-4 text-sm">
+                <div className="w-8 h-8 bg-gray-50 rounded-full flex items-center justify-center border border-gray-100">
+                  <Globe className="size-4 text-gray-500" />
+                </div>
+                <span className="text-gray-600 font-medium">
+                  <a href={`https://${profile.website}`} target="_blank" rel="noreferrer" className="hover:underline">
+                    {profile.website}
+                  </a>
+                </span>
               </div>
             )}
           </div>
