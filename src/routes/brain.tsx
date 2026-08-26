@@ -53,6 +53,7 @@ import {
 } from "lucide-react";
 
 import {
+  memo,
   useCallback,
   useEffect,
   useMemo,
@@ -535,7 +536,7 @@ const edgeTypes = {
    NODE CARD
 ============================================================================ */
 
-function FlowNode({
+const FlowNode = memo(function FlowNode({
   data,
   selected,
 }: NodeProps<BrainNode>) {
@@ -545,7 +546,7 @@ function FlowNode({
   return (
     <div
       className={cn(
-        "relative w-[245px] rounded-2xl border bg-white shadow-[0_8px_28px_rgba(15,23,42,.08)]",
+        "group relative w-[245px] rounded-2xl border border-slate-200/90 bg-white shadow-[0_8px_24px_rgba(15,23,42,.06)] cursor-pointer transform-gpu [backface-visibility:hidden] will-change-transform transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-2 hover:scale-[1.018] hover:shadow-[0_20px_35px_rgba(15,23,42,.12)] hover:border-slate-300",
         selected &&
           "ring-2 ring-emerald-400 ring-offset-2",
       )}
@@ -566,7 +567,7 @@ function FlowNode({
         <div className="flex min-w-0 items-center gap-3">
           <div
             className={cn(
-              "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border",
+              "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transform-gpu transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-110",
               tone.bg,
               tone.border,
             )}
@@ -581,7 +582,7 @@ function FlowNode({
           </div>
 
           <div className="min-w-0">
-            <div className="truncate text-sm font-semibold text-slate-900">
+            <div className="truncate text-sm font-semibold text-slate-900 transition-colors duration-200 group-hover:text-slate-950">
               {data.title}
             </div>
 
@@ -592,7 +593,7 @@ function FlowNode({
         </div>
 
         <div className="flex items-center gap-1.5">
-          <span className="h-2 w-2 rounded-full bg-emerald-500" />
+          <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
 
           <span className="text-[8px] font-semibold uppercase text-emerald-600">
             {data.status}
@@ -606,7 +607,7 @@ function FlowNode({
         </p>
 
         {data.autonomous ? (
-          <div className="mt-3 flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-2">
+          <div className="mt-3 flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/90 px-2.5 py-2 transform-gpu transition-all duration-200 group-hover:bg-emerald-50">
             <Sparkles className="h-3.5 w-3.5 text-emerald-600" />
 
             <div>
@@ -662,7 +663,7 @@ function FlowNode({
       </div>
     </div>
   );
-}
+});
 
 const nodeTypes = {
   brain: FlowNode,
@@ -1267,8 +1268,8 @@ function BrainWorkspace() {
             real > 0
               ? real
               : simulated[
-                    connection.id
-                  ]?.throughput ??
+                  connection.id
+                ]?.throughput ??
                 0;
 
           const color =
@@ -2292,7 +2293,7 @@ function BrainWorkspace() {
 
   /* ==========================================================================
      VISUAL CAMERA ANIMATION
-  ========================================================================== */
+  ========================================================================= */
 
   useEffect(() => {
     if (
@@ -2336,43 +2337,42 @@ function BrainWorkspace() {
      CAMERA OPEN
   ========================================================================== */
 
-  const openVision =
-    () => {
-      stopCamera();
+  const openVision = useCallback(() => {
+    stopCamera();
 
-      setShowVision(
-        true,
-      );
+    setShowVision(
+      true,
+    );
 
-      setCameraState(
-        "idle",
-      );
+    setCameraState(
+      "idle",
+    );
 
-      setScanProgress(
-        0,
-      );
+    setScanProgress(
+      0,
+    );
 
-      setScanResult(
-        null,
-      );
+    setScanResult(
+      null,
+    );
 
-      setFaceDetected(
-        false,
-      );
+    setFaceDetected(
+      false,
+    );
 
-      setFaceConfidence(
-        0,
-      );
+    setFaceConfidence(
+      0,
+    );
 
-      setFaceBox(
-        null,
-      );
+    setFaceBox(
+      null,
+    );
 
-      setVideoSize({
-        width: 1,
-        height: 1,
-      });
-    };
+    setVideoSize({
+      width: 1,
+      height: 1,
+    });
+  }, [stopCamera]);
 
   /* ==========================================================================
      CAMERA REQUEST
@@ -2462,7 +2462,7 @@ function BrainWorkspace() {
   ========================================================================== */
 
   const closeVision =
-    () => {
+    useCallback(() => {
       stopCamera();
 
       setShowVision(
@@ -2492,7 +2492,7 @@ function BrainWorkspace() {
       setFaceBox(
         null,
       );
-    };
+    }, [stopCamera]);
 
   /* ==========================================================================
      RUN SCAN
@@ -2727,7 +2727,7 @@ function BrainWorkspace() {
   ]);
 
   /* ==========================================================================
-     SELECTED NODE
+     SELECTED NODE & HANDLERS
   ========================================================================== */
 
   const selectedNode =
@@ -2743,6 +2743,20 @@ function BrainWorkspace() {
         node.node_key ===
         "brain",
     );
+
+  const handleNodeClick = useCallback(
+    (_event: React.MouseEvent, node: BrainNode) => {
+      setSelectedNodeId(node.id);
+      if (node.data.icon === "scan") {
+        openVision();
+      }
+    },
+    [openVision],
+  );
+
+  const handlePaneClick = useCallback(() => {
+    setSelectedNodeId(null);
+  }, []);
 
   /* ==========================================================================
      RENDER
@@ -2772,7 +2786,7 @@ function BrainWorkspace() {
         <div className="flex flex-wrap gap-2">
           <div
             className={cn(
-              "flex items-center gap-2 rounded-lg border bg-white px-3 py-2 text-[10px] shadow-sm",
+              "flex items-center gap-2 rounded-lg border bg-white px-3 py-2 text-[10px] shadow-sm transform-gpu [backface-visibility:hidden] transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:shadow-md",
 
               dbNodes.length &&
                 dbConnections.length
@@ -2797,7 +2811,7 @@ function BrainWorkspace() {
 
           {!stats.realTelemetry &&
           dbConnections.length ? (
-            <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[9px] text-amber-700">
+            <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[9px] text-amber-700 transform-gpu [backface-visibility:hidden] transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:shadow-md">
               <Activity className="h-3 w-3" />
               FLOW PREVIEW
             </div>
@@ -2805,7 +2819,7 @@ function BrainWorkspace() {
 
           <Button
             variant="outline"
-            className="gap-2"
+            className="gap-2 transform-gpu [backface-visibility:hidden] transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:shadow-md"
             onClick={() =>
               setAutoFlow(
                 (value) =>
@@ -2822,7 +2836,7 @@ function BrainWorkspace() {
 
           <Button
             variant="outline"
-            className="gap-2"
+            className="gap-2 transform-gpu [backface-visibility:hidden] transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:shadow-md"
             onClick={() =>
               fitView({
                 duration: 500,
@@ -2836,7 +2850,7 @@ function BrainWorkspace() {
 
           <Button
             variant="outline"
-            className="gap-2"
+            className="gap-2 transform-gpu [backface-visibility:hidden] transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:shadow-md"
             onClick={() =>
               setShowActivity(
                 (value) =>
@@ -2849,7 +2863,7 @@ function BrainWorkspace() {
           </Button>
 
           <Button
-            className="gap-2"
+            className="gap-2 transform-gpu [backface-visibility:hidden] transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:shadow-md"
             onClick={() =>
               setShowAdd(
                 true,
@@ -2955,27 +2969,8 @@ function BrainWorkspace() {
             handleConnect
           }
 
-          onNodeClick={(
-            _event,
-            node,
-          ) => {
-            setSelectedNodeId(
-              node.id,
-            );
-
-            if (
-              node.data.icon ===
-              "scan"
-            ) {
-              openVision();
-            }
-          }}
-
-          onPaneClick={() =>
-            setSelectedNodeId(
-              null,
-            )
-          }
+          onNodeClick={handleNodeClick}
+          onPaneClick={handlePaneClick}
 
           fitView
 
@@ -3059,7 +3054,7 @@ function BrainWorkspace() {
             position="top-left"
             className="!m-4"
           >
-            <div className="rounded-xl border border-slate-200 bg-white/95 px-4 py-3 shadow-md">
+            <div className="rounded-xl border border-slate-200 bg-white/95 px-4 py-3 shadow-md transform-gpu [backface-visibility:hidden] transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:shadow-xl">
               <div className="flex items-center gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50">
                   <BrainCircuit className="h-5 w-5 text-emerald-600" />
@@ -3307,7 +3302,7 @@ function BrainWorkspace() {
       {/* LOWER */}
       <div className="grid gap-4 lg:grid-cols-3">
         {/* VISION */}
-        <Card className="overflow-hidden border-slate-200 bg-white lg:col-span-2">
+        <Card className="overflow-hidden border-slate-200 bg-white transform-gpu [backface-visibility:hidden] will-change-transform transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1.5 hover:shadow-[0_16px_32px_rgba(15,23,42,.08)] hover:border-slate-300 lg:col-span-2">
           <CardHeader className="border-b border-slate-100">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -3346,7 +3341,7 @@ function BrainWorkspace() {
                 onClick={
                   openVision
                 }
-                className="gap-2"
+                className="gap-2 transform-gpu [backface-visibility:hidden] transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:shadow-sm"
               >
                 <Eye className="h-3.5 w-3.5" />
                 Open Vision
@@ -3357,7 +3352,7 @@ function BrainWorkspace() {
           <CardContent className="p-0">
             <div className="grid lg:grid-cols-[1.4fr_1fr]">
               <div className="bg-slate-50 p-5">
-                <div className="relative aspect-video overflow-hidden rounded-2xl border border-slate-200 bg-white">
+                <div className="relative aspect-video overflow-hidden rounded-2xl border border-slate-200 bg-white transform-gpu transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.01]">
                   {showVision ? (
                     <video
                       ref={
@@ -3611,7 +3606,7 @@ function BrainWorkspace() {
                 </div>
 
                 {scanResult ? (
-                  <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3">
+                  <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3 transform-gpu [backface-visibility:hidden] transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:shadow-md">
                     <div className="flex items-center gap-2 text-xs font-semibold text-emerald-700">
                       <CheckCircle2 className="h-4 w-4" />
                       Scan Complete
@@ -3649,7 +3644,7 @@ function BrainWorkspace() {
                   cameraState ===
                     "error" ? (
                     <Button
-                      className="flex-1 gap-2"
+                      className="flex-1 gap-2 transform-gpu [backface-visibility:hidden] transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5"
                       onClick={
                         requestCamera
                       }
@@ -3660,7 +3655,7 @@ function BrainWorkspace() {
                   ) : cameraState ===
                     "ready" ? (
                     <Button
-                      className="flex-1 gap-2"
+                      className="flex-1 gap-2 transform-gpu [backface-visibility:hidden] transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5"
                       disabled={
                         !faceDetected
                       }
@@ -3676,7 +3671,7 @@ function BrainWorkspace() {
                   ) : cameraState ===
                     "complete" ? (
                     <Button
-                      className="flex-1 gap-2"
+                      className="flex-1 gap-2 transform-gpu [backface-visibility:hidden] transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5"
                       onClick={() => {
                         setScanProgress(
                           0,
@@ -3718,7 +3713,7 @@ function BrainWorkspace() {
         </Card>
 
         {/* RUNTIME */}
-        <Card className="border-slate-200 bg-white">
+        <Card className="border-slate-200 bg-white transform-gpu [backface-visibility:hidden] will-change-transform transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1.5 hover:shadow-[0_16px_32px_rgba(15,23,42,.08)] hover:border-slate-300">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <Activity className="h-4 w-4 text-emerald-600" />
@@ -3776,7 +3771,7 @@ function BrainWorkspace() {
       </div>
 
       {/* RECENT VISION */}
-      <Card className="border-slate-200 bg-white">
+      <Card className="border-slate-200 bg-white transform-gpu [backface-visibility:hidden] will-change-transform transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1.5 hover:shadow-[0_16px_32px_rgba(15,23,42,.08)] hover:border-slate-300">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
@@ -3825,7 +3820,7 @@ function BrainWorkspace() {
                       key={
                         session.id
                       }
-                      className="rounded-xl border border-slate-200 bg-white p-3"
+                      className="rounded-xl border border-slate-200 bg-white p-3 transform-gpu [backface-visibility:hidden] transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:shadow-md hover:border-slate-300"
                     >
                       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                         <div className="flex items-center gap-3">
@@ -3897,7 +3892,7 @@ function BrainWorkspace() {
 
               <Button
                 size="sm"
-                className="mt-4 gap-2"
+                className="mt-4 gap-2 transform-gpu [backface-visibility:hidden] transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:shadow-md"
                 onClick={
                   openVision
                 }
@@ -3912,7 +3907,7 @@ function BrainWorkspace() {
 
       {/* ACTIVITY */}
       {showActivity ? (
-        <Card className="border-slate-200 bg-white">
+        <Card className="border-slate-200 bg-white transform-gpu [backface-visibility:hidden] will-change-transform transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1.5 hover:shadow-[0_16px_32px_rgba(15,23,42,.08)] hover:border-slate-300">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <History className="h-4 w-4 text-slate-500" />
@@ -3929,7 +3924,7 @@ function BrainWorkspace() {
                       key={
                         item.id
                       }
-                      className="flex flex-col gap-2 rounded-xl border border-slate-100 bg-slate-50 p-3 md:flex-row md:justify-between"
+                      className="flex flex-col gap-2 rounded-xl border border-slate-100 bg-slate-50 p-3 transform-gpu transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:bg-slate-100/80 md:flex-row md:justify-between"
                     >
                       <div>
                         <div className="text-[10px] font-semibold text-slate-800">
@@ -4048,10 +4043,10 @@ function BrainWorkspace() {
 }
 
 /* ============================================================================
-   SMALL COMPONENTS
+   SMALL COMPONENTS (MEMOIZED & ACCELERATED)
 ============================================================================ */
 
-function Metric({
+const Metric = memo(function Metric({
   icon: Icon,
   label,
   value,
@@ -4065,9 +4060,9 @@ function Metric({
   suffix: string;
 }) {
   return (
-    <Card className="border-slate-200 bg-white">
+    <Card className="group border-slate-200 bg-white transform-gpu [backface-visibility:hidden] will-change-transform transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-2 hover:shadow-[0_16px_30px_rgba(15,23,42,.12)] hover:border-slate-300">
       <CardContent className="flex items-center gap-3 p-4">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 text-slate-600">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 text-slate-600 transform-gpu transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-110">
           <Icon className="h-5 w-5" />
         </div>
 
@@ -4089,9 +4084,9 @@ function Metric({
       </CardContent>
     </Card>
   );
-}
+});
 
-function TinyMetric({
+const TinyMetric = memo(function TinyMetric({
   label,
   value,
 }: {
@@ -4099,7 +4094,7 @@ function TinyMetric({
   value: string;
 }) {
   return (
-    <div className="rounded-lg bg-slate-50 px-2.5 py-2">
+    <div className="rounded-lg bg-slate-50 px-2.5 py-2 transform-gpu transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-slate-100">
       <div className="text-[7px] font-semibold text-slate-400">
         {label}
       </div>
@@ -4109,9 +4104,9 @@ function TinyMetric({
       </div>
     </div>
   );
-}
+});
 
-function RuntimeBadge({
+const RuntimeBadge = memo(function RuntimeBadge({
   label,
   value,
 }: {
@@ -4119,7 +4114,7 @@ function RuntimeBadge({
   value: string;
 }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
+    <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm transform-gpu [backface-visibility:hidden] transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:shadow-md hover:border-slate-300">
       <div className="text-[8px] font-semibold text-slate-400">
         {label}
       </div>
@@ -4129,9 +4124,9 @@ function RuntimeBadge({
       </div>
     </div>
   );
-}
+});
 
-function StatusValue({
+const StatusValue = memo(function StatusValue({
   label,
   value,
 }: {
@@ -4139,7 +4134,7 @@ function StatusValue({
   value: string;
 }) {
   return (
-    <div className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2.5">
+    <div className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2.5 transform-gpu transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-slate-100/90">
       <span className="text-[10px] text-slate-500">
         {label}
       </span>
@@ -4149,9 +4144,9 @@ function StatusValue({
       </span>
     </div>
   );
-}
+});
 
-function StatusRow({
+const StatusRow = memo(function StatusRow({
   title,
   value,
   ok,
@@ -4161,7 +4156,7 @@ function StatusRow({
   ok: boolean;
 }) {
   return (
-    <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-3 py-2.5">
+    <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-3 py-2.5 transform-gpu transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-sm">
       <div className="flex items-center gap-2">
         <span
           className={cn(
@@ -4189,9 +4184,9 @@ function StatusRow({
       </span>
     </div>
   );
-}
+});
 
-function ResultBox({
+const ResultBox = memo(function ResultBox({
   label,
   value,
 }: {
@@ -4199,7 +4194,7 @@ function ResultBox({
   value: string;
 }) {
   return (
-    <div className="rounded-lg border border-slate-100 bg-white px-2.5 py-2">
+    <div className="rounded-lg border border-slate-100 bg-white px-2.5 py-2 transform-gpu transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-sm">
       <div className="text-[7px] font-semibold text-slate-400">
         {label}
       </div>
@@ -4209,9 +4204,9 @@ function ResultBox({
       </div>
     </div>
   );
-}
+});
 
-function AddNodeButton({
+const AddNodeButton = memo(function AddNodeButton({
   icon: Icon,
   title,
   description,
@@ -4230,7 +4225,7 @@ function AddNodeButton({
       onClick={
         onClick
       }
-      className="flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3 text-left hover:border-emerald-300 hover:bg-emerald-50"
+      className="flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3 text-left transform-gpu transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-emerald-300 hover:bg-emerald-50 hover:shadow-sm"
     >
       <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white text-slate-600 shadow-sm">
         <Icon className="h-4 w-4" />
@@ -4249,7 +4244,7 @@ function AddNodeButton({
       <Plus className="ml-auto h-3.5 w-3.5 text-slate-400" />
     </button>
   );
-}
+});
 
 /* ============================================================================
    VISION MODAL

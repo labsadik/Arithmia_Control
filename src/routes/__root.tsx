@@ -26,6 +26,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { AppSidebar } from "@/components/app-sidebar";
 import { DashboardHeader } from "@/components/dashboard-header";
 import { SiteBootScreen } from "@/components/site-boot-screen";
+import { ChatWidget } from "@/components/chat-widget";
 
 function NotFoundComponent() {
   return (
@@ -216,7 +217,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <SiteBootScreen>
         <SidebarProvider defaultOpen>
-          <div className="min-h-screen flex w-full bg-background">
+          <div className="min-h-screen flex w-full bg-background relative">
             <AppSidebar />
 
             <div className="flex flex-1 min-w-0 flex-col">
@@ -226,6 +227,9 @@ function RootComponent() {
                 <Outlet />
               </main>
             </div>
+
+            {/* Floating Chatbot Widget */}
+            <ChatWidget />
           </div>
 
           <Toaster
